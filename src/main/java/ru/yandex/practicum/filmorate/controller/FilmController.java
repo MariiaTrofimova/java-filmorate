@@ -3,11 +3,15 @@ package ru.yandex.practicum.filmorate.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
+import javax.validation.Valid;
 import java.util.List;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
 @RequestMapping("/films")
@@ -27,13 +31,14 @@ public class FilmController {
         return service.listFilms();
     }
 
-    @PostMapping
-    public Film addFilm(@RequestBody Film film) throws JsonProcessingException {
+    @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    public Film addFilm(@Valid @RequestBody Film film) throws JsonProcessingException {
         return service.addFilm(film);
     }
 
-    @PutMapping
-    public Film updateFilm(@RequestBody Film film) throws JsonProcessingException {
+    @PutMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+    public Film updateFilm(@Valid @RequestBody Film film) throws JsonProcessingException {
         return service.updateFilm(film);
     }
 }

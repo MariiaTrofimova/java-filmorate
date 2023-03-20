@@ -4,15 +4,15 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.time.LocalDate;
 
-public class BirthdayValidator implements
-        ConstraintValidator<BirthdayConstraint, LocalDate> {
+public class ReleaseValidator implements
+        ConstraintValidator<ReleaseConstraint, LocalDate> {
     @Override
-    public void initialize(BirthdayConstraint birthday) {
+    public void initialize(ReleaseConstraint birthday) {
     }
 
     @Override
     public boolean isValid(LocalDate date,
                            ConstraintValidatorContext cxt) {
-        return (date != null) && (!date.isAfter(LocalDate.now()));
+        return (date != null) && (!date.isBefore(LocalDate.of(1895, 12, 28)));
     }
 }
