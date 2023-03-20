@@ -3,8 +3,10 @@ package ru.yandex.practicum.filmorate.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FilmControllerTest {
     FilmController controller;
+    FilmService service;
     Film film;
     private final LocalDate testReleaseDate = LocalDate.of(2000, 1, 1);
     private final int duration = 90;
@@ -25,7 +28,8 @@ class FilmControllerTest {
 
     @BeforeEach
     void setUp() {
-        controller = new FilmController();
+        service = new FilmService();
+        controller = new FilmController(service);
     }
 
     @Test
@@ -161,15 +165,15 @@ class FilmControllerTest {
         assertEquals(filmToUpdate, filmUpdated);
 
         Film filmId = filmBuilder.build();
-        ValidationException ex = assertThrows(
-                ValidationException.class,
+        NotFoundException ex = assertThrows(
+                NotFoundException.class,
                 () -> controller.updateFilm(filmId)
         );
         assertEquals("Отсутствует id", ex.getMessage());
 
         filmId.setId(2);
         ex = assertThrows(
-                ValidationException.class,
+                NotFoundException.class,
                 () -> controller.updateFilm(filmId)
         );
         assertEquals("Фильм с id 2 не найден", ex.getMessage());

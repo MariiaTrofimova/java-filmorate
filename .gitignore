@@ -29,6 +29,9 @@ target/
 *.iml
 *.ipr
 
+### Maven ###
+.mvn
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -44,3 +47,7 @@ build/
 
 *.db
 db/*
+
+# Default ignored files
+/shelf/
+/workspace.xml

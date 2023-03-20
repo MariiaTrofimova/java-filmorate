@@ -2,61 +2,46 @@ package ru.yandex.practicum.filmorate.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.validation.Valid;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.BindingResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.ui.Model;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.validation.UserValidation;
+import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import javax.validation.Valid;
 import java.util.List;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 @RestController
-@RequestMapping("/users")
+@RequestMapping(value = "/users", produces = "application/json")
 @Slf4j
 public class UserController {
-    private int nextUserId = 1;
-    private final HashMap<Integer, User> users = new HashMap<>();
-    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+
+    @Autowired
+    private final UserService service;
+
+    public UserController(UserService service) {
+        this.service = service;
+    }
 
     @GetMapping
     public List<User> listUsers() {
-        log.debug("Текущее количество пользователей: {}", users.size());
-        return new ArrayList<>(users.values());
+        return service.listUsers();
     }
 
-    @PostMapping
-    public User addUser(@Valid @RequestBody User user, BindingResult bindingResult) throws JsonProcessingException {
-        if (UserValidation.isUserValid(user, bindingResult)) {
-            int id = nextUserId++;
-            user.setId(id);
-            if (user.getName() == null || user.getName().isBlank()) {
-                user.setName(user.getLogin());
-            }
-            users.put(id, user);
-            log.debug("Пользователь {} сохранен", mapper.writeValueAsString(user));
-        }
-        return user;
+    @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    public User addUser(@Valid @RequestBody User user) throws JsonProcessingException {
+        return service.addUser(user);
     }
 
-    @PutMapping
-    public User updateUser(@Valid @RequestBody User user, BindingResult bindingResult) throws JsonProcessingException {
-        if (UserValidation.isUserValid(user, bindingResult)) {
-            int id = user.getId();
-            if (id == 0) {
-                log.warn("Отсутствует id");
-                throw new ValidationException("Отсутствует id");
-            } else if (!users.containsKey(id)) {
-                log.warn("Пользователь с id {} не найден", id);
-                throw new ValidationException("Пользователь с id " + id + " не найден");
-            } else {
-                users.put(id, user);
-                log.debug("Пользователь {} обновлен", mapper.writeValueAsString(user));
-            }
-        }
-        return user;
+    @PutMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+    public User updateUser(@Valid @RequestBody User user) throws JsonProcessingException {
+        return service.updateUser(user);
     }
 }
