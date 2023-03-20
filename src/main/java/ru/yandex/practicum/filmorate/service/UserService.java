@@ -28,6 +28,7 @@ public class UserService {
         user.setId(id);
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
+            log.info("Имя не указано. Вместо него будет использован логин");
         }
         users.put(id, user);
         log.debug("Пользователь {} сохранен", mapper.writeValueAsString(user));
