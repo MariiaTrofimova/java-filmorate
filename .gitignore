@@ -28,6 +28,8 @@ target/
 
 ### Maven ###
 .mvn
+mvnw
+mvnw.cmd
 
 ### NetBeans ###
 /nbproject/private/
