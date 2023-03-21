@@ -28,7 +28,6 @@ public class FilmController {
 
     private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 
-
     @GetMapping
     public List<Film> listFilms() {
         return service.listFilms();

@@ -12,11 +12,9 @@ import java.time.LocalDate;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class User {
     private int id;
-
     @NotBlank(message = "E-mail не может быть пустым")
     @Email(message = "Введен некорректный e-mail")
     private String email;
-
     @NotBlank(message = "Логин не может быть пустым")
     @Pattern(regexp = "\\S+",  message = "Логин содержит пробелы")
     private String login;
