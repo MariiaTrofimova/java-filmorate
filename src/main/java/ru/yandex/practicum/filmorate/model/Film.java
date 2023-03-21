@@ -13,10 +13,8 @@ import java.time.LocalDate;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Film {
     private int id;
-    @NotNull(message = "Отсутствует название")
     @NotBlank(message = "Отсутствует название")
     private String name;
-    @NotNull(message = "Отсутствует описание")
     @NotBlank(message = "Отсутствует описание")
     @Size(max = 200, message = "Длина описания больше 200 символов")
     private String description;

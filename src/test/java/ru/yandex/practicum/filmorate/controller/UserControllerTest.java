@@ -217,21 +217,25 @@ class UserControllerTest {
         user = userBuilder.id(0).name("Name").build();
         String json = mapper.writeValueAsString(user);
 
-        when(service.updateUser(user)).thenThrow(NotFoundException.class);
+        when(service.updateUser(user)).thenThrow(new NotFoundException("Отсутствует id"));
         this.mockMvc.perform(put(url)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andDo(print())
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(mvcResult ->
+                        mvcResult.getResolvedException().getMessage().equals("Отсутствует id"));
 
         user = userBuilder.id(1).build();
         json = mapper.writeValueAsString(user);
 
-        when(service.updateUser(user)).thenThrow(NotFoundException.class);
+        when(service.updateUser(user)).thenThrow(new NotFoundException("Пользователь с id 1 не найден"));
         this.mockMvc.perform(put(url)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andDo(print())
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(mvcResult ->
+                        mvcResult.getResolvedException().getMessage().equals("Пользователь с id 1 не найден"));
     }
 }
