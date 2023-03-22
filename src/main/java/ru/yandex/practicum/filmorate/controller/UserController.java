@@ -18,10 +18,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @Slf4j
 public class UserController {
 
-    @Autowired
     private final UserService service;
 
-    public UserController(UserService service) {
+    public UserController(@Autowired UserService service) {
         this.service = service;
     }
 

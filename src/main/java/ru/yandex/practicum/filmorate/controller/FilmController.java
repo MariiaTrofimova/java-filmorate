@@ -19,10 +19,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @Slf4j
 public class FilmController {
 
-    @Autowired
     private final FilmService service;
 
-    public FilmController (FilmService service) {
+    public FilmController (@Autowired FilmService service) {
         this.service = service;
     }
 

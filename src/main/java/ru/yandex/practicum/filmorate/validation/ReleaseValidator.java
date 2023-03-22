@@ -6,6 +6,8 @@ import java.time.LocalDate;
 
 public class ReleaseValidator implements
         ConstraintValidator<ReleaseConstraint, LocalDate> {
+
+    private static final LocalDate FIRST_FILM_DATE = LocalDate.of(1895, 12, 28);
     @Override
     public void initialize(ReleaseConstraint birthday) {
     }
@@ -13,6 +15,6 @@ public class ReleaseValidator implements
     @Override
     public boolean isValid(LocalDate date,
                            ConstraintValidatorContext cxt) {
-        return (date != null) && (!date.isBefore(LocalDate.of(1895, 12, 28)));
+        return (date != null) && (!date.isBefore(FIRST_FILM_DATE));
     }
 }

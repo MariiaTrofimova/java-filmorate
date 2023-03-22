@@ -202,7 +202,8 @@ class FilmControllerTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(mvcResult ->
-                        mvcResult.getResolvedException().getMessage().equals("Длина описания больше 200 символов"));
+                        mvcResult.getResolvedException().getMessage()
+                                .equals("Длина описания должна быть от 1 до 200 символов"));
 
         film = filmBuilder.description("").build();
         json = mapper.writeValueAsString(film);
@@ -213,7 +214,8 @@ class FilmControllerTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(mvcResult ->
-                        mvcResult.getResolvedException().getMessage().equals("Отсутствует описание"));
+                        mvcResult.getResolvedException().getMessage()
+                                .equals("Длина описания должна быть от 1 до 200 символов"));
     }
 
     @Test

@@ -15,8 +15,7 @@ public class Film {
     private int id;
     @NotBlank(message = "Отсутствует название")
     private String name;
-    @NotBlank(message = "Отсутствует описание")
-    @Size(max = 200, message = "Длина описания больше 200 символов")
+    @Size(min = 1, max = 200, message = "Длина описания должна быть от 1 до 200 символов")
     private String description;
     @NotNull(message = "Отсутствует дата релиза")
     @ReleaseConstraint
