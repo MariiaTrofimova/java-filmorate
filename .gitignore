@@ -10,9 +10,6 @@
 hs_err_pid*
 out/
 target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
 
 ### STS ###
 .apt_generated
@@ -29,6 +26,11 @@ target/
 *.iml
 *.ipr
 
+### Maven ###
+.mvn
+mvnw
+mvnw.cmd
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -44,3 +46,7 @@ build/
 
 *.db
 db/*
+
+# Default ignored files
+/shelf/
+/workspace.xml
