@@ -16,7 +16,6 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertNotNull;
@@ -378,7 +377,7 @@ class FilmControllerTest {
 
     @Test
     void shouldAddLike() throws Exception {
-        when(service.addLike(1, 1)).thenReturn(List.of(1l));
+        when(service.addLike(1, 1)).thenReturn(List.of(1L));
         mockMvc.perform(put(url + "/1/like/1"))
                 .andDo(print())
                 .andExpect(status().isOk())

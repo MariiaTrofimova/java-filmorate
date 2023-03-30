@@ -12,7 +12,6 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
-import javax.validation.ValidationException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Collections;
@@ -336,7 +335,7 @@ class UserControllerTest {
 
     @Test
     void shouldAddFriend() throws Exception {
-        when(service.addFriend(1, 2)).thenReturn(List.of(2l));
+        when(service.addFriend(1, 2)).thenReturn(List.of(2L));
         mockMvc.perform(put(url + "/1/friends/2"))
                 .andDo(print())
                 .andExpect(status().isOk())
