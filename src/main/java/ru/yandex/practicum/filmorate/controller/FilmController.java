@@ -16,7 +16,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class FilmController {
 
     private final FilmService service;
-    private final static String TOP_QUANTITY = "10";
 
     @Autowired
     public FilmController(FilmService service) {
@@ -35,7 +34,7 @@ public class FilmController {
 
     @GetMapping("/popular")
     public List<Film> listTopFilms(
-            @RequestParam(defaultValue = TOP_QUANTITY) Integer count) {
+            @RequestParam(defaultValue = "10") Integer count) {
         return service.listTopFilms(count);
     }
 
