@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.validation.IdValidator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +28,7 @@ public class InMemoryUserStorage implements UserStorage {
     public User findUserById(long id) {
         if (!users.containsKey(id)) {
             log.warn("Пользователь с id {} не найден", id);
-            throw new NotFoundException( String.format("Пользователь с id %s не найден", id));
+            throw new NotFoundException(String.format("Пользователь с id %s не найден", id));
         }
         return users.get(id);
     }
@@ -50,6 +49,7 @@ public class InMemoryUserStorage implements UserStorage {
         }
         return user;
     }
+
     public User updateUser(User user) {
         long id = user.getId();
         if (id == 0) {

@@ -7,9 +7,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.validation.IdValidator;
 
-import javax.validation.ValidationException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,21 +25,21 @@ public class FilmService {
         this.userService = userService;
     }
 
-    public List<Long> addLike(String stringFilmId, String stringUserId) {
-        Film film = findFilmById(stringFilmId);
-        User user = userService.findUserById(stringUserId);
-        film.addLike(user.getId());
+    public List<Long> addLike(long filmId, long userId) {
+        Film film = findFilmById(filmId);
+        User user = userService.findUserById(userId);
+        film.addLike(userId);
         return new ArrayList<>(film.getLikes());
     }
 
-    public List<Long> deleteLike(String stringFilmId, String stringUserId) {
-        Film film = findFilmById(stringFilmId);
-        User user = userService.findUserById(stringUserId);
-        if (!film.deleteLike(user.getId())) {
-            log.warn("Пользователь c id {} не ставил лайки фильму c id {}", stringUserId, stringFilmId);
+    public List<Long> deleteLike(long filmId, long userId) {
+        Film film = findFilmById(filmId);
+        User user = userService.findUserById(userId);
+        if (!film.deleteLike(userId)) {
+            log.warn("Пользователь c id {} не ставил лайки фильму c id {}", userId, filmId);
             throw new NotFoundException(
                     String.format("Пользователь c id %s не ставил лайки фильму c id %s",
-                            stringUserId, stringFilmId));
+                            userId, filmId));
         }
         return new ArrayList<>(film.getLikes());
     }
@@ -65,8 +63,7 @@ public class FilmService {
         return storage.updateFilm(film);
     }
 
-    public Film findFilmById(String stringId) {
-        long id = IdValidator.parseId(stringId);
+    public Film findFilmById(long id) {
         return storage.findFilmById(id);
     }
 }

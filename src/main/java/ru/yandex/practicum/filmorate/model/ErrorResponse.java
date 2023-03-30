@@ -10,7 +10,6 @@ public class ErrorResponse {
 
     Map<String, String> validationErrors;
 
-
     public ErrorResponse(String error) {
         this.error = error;
     }

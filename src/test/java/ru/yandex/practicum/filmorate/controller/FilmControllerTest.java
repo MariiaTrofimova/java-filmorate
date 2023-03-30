@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertNotNull;
@@ -327,4 +328,70 @@ class FilmControllerTest {
                         mvcResult.getResolvedException().getMessage().equals("Фильм с id 1 не найден"));
     }
 
+    @Test
+    void shouldFindFilmById() throws Exception {
+        film = filmBuilder.id(1).build();
+        String json = mapper.writeValueAsString(film);
+
+        when(service.findFilmById(1)).thenReturn(film);
+        mockMvc.perform(get(url + "/1"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(json));
+    }
+
+    @Test
+    void findFilmByIdNotExistingId() throws Exception {
+        when(service.findFilmById(1)).thenThrow(new NotFoundException("Фильм с id 1 не найден"));
+        mockMvc.perform(get(url + "/1"))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(mvcResult ->
+                        mvcResult.getResolvedException().getMessage().equals("Фильм с id 1 не найден"));
+    }
+
+    @Test
+    void shouldListEmptyListTopFilms() throws Exception {
+        when(service.listTopFilms(10)).thenReturn(Collections.EMPTY_LIST);
+        this.mockMvc
+                .perform(get(url + "/popular?count="))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    void shouldListTopFilms() throws Exception {
+        Film film1 = filmBuilder.id(1).name("Film name1").build();
+        Film film2 = filmBuilder.id(2).name("Film name2").build();
+        film1.addLike(2);
+        film1.addLike(3);
+        film2.addLike(1);
+        when(service.listTopFilms(2)).thenReturn(List.of(film1, film2));
+
+        mockMvc.perform(get(url + "/popular?count=2"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()", is(2)))
+                .andExpect(jsonPath("$[0].likes", is(List.of(2, 3))));
+    }
+
+    @Test
+    void shouldAddLike() throws Exception {
+        when(service.addLike(1, 1)).thenReturn(List.of(1l));
+        mockMvc.perform(put(url + "/1/like/1"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()", is(1)))
+                .andExpect(jsonPath("$[0]", is(1)));
+    }
+
+    @Test
+    void shouldDeleteLike() throws Exception {
+        when(service.deleteLike(1, 1)).thenReturn(Collections.EMPTY_LIST);
+        mockMvc.perform(delete(url + "/1/like/1"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()", is(0)));
+    }
 }

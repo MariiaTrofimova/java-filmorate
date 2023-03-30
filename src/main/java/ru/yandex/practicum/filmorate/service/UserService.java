@@ -7,10 +7,8 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
-import ru.yandex.practicum.filmorate.validation.IdValidator;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,7 +24,7 @@ public class UserService {
         this.storage = storage;
     }
 
-    public List<User> listFriends(String id) {
+    public List<User> listFriends(long id) {
         User user = findUserById(id);
         log.debug("Текущее количество друзей у пользователя с id {}: {}", id, user.getFriends().size());
         return user.getFriends().stream()
@@ -34,7 +32,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public List<Long> addFriend(String id, String friendId) {
+    public List<Long> addFriend(long id, long friendId) {
         User user = findUserById(id);
         User userFriend = findUserById(friendId);
         user.addFriend(userFriend.getId());
@@ -43,7 +41,7 @@ public class UserService {
         return new ArrayList<>(user.getFriends());
     }
 
-    public List<Long> deleteFriend(String id, String friendId) {
+    public List<Long> deleteFriend(long id, long friendId) {
         User user = findUserById(id);
         User userFriend = findUserById(friendId);
         boolean isFriends = user.deleteFriend(userFriend.getId()) && userFriend.deleteFriend(user.getId());
@@ -57,7 +55,7 @@ public class UserService {
         return new ArrayList<>(user.getFriends());
     }
 
-    public List<User> listCommonFriends(String id, String otherId) {
+    public List<User> listCommonFriends(long id, long otherId) {
         User user = findUserById(id);
         User otherUser = findUserById(otherId);
 
@@ -79,8 +77,7 @@ public class UserService {
         return storage.updateUser(user);
     }
 
-    public User findUserById(String stringId) {
-        long id = IdValidator.parseId(stringId);
+    public User findUserById(long id) {
         return storage.findUserById(id);
     }
 }

@@ -26,9 +26,11 @@ public class Film {
     @PositiveOrZero(message = "Продолжительность фильма отрицательная")
     private int duration;
     private final Set<Long> likes = new HashSet<>(); //id друзей, поставивших лайки
+
     public void addLike(long id) {
         likes.add(id);
     }
+
     public boolean deleteLike(long id) {
         if (!likes.contains(id)) {
             return false;

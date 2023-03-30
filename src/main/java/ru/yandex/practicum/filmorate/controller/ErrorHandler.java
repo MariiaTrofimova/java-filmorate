@@ -10,10 +10,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.ErrorResponse;
 
-import javax.validation.ValidationException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,16 +33,11 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleValidationException(final ValidationException e) {
-        log.error(e.getMessage(), e);
-        return new ErrorResponse(e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleNumberFormatException(final NumberFormatException e) {
-        log.error(e.getMessage(), e);
-        return new ErrorResponse(e.getMessage());
+    public ErrorResponse handleMethodArgumentTypeMismatchException(final MethodArgumentTypeMismatchException e,
+                                                                   WebRequest request) {
+        ErrorResponse response = new ErrorResponse(String.format("Переменная %s: %s должна быть %s.",
+                e.getName(), e.getValue(), e.getRequiredType().getSimpleName()));
+        return response;
     }
 
     @ExceptionHandler
@@ -59,10 +55,14 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleNoHandlerFoundException(final NoHandlerFoundException e, WebRequest request) {
+        return new ErrorResponse("Неизвестный запрос.");
+    }
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleThrowable(final Throwable e) {
-        return new ErrorResponse(
-                "Произошла непредвиденная ошибка."
-        );
+        return new ErrorResponse("Произошла непредвиденная ошибка.");
     }
 }
