@@ -1,48 +1,72 @@
 package ru.yandex.practicum.filmorate.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.validation.IdValidator;
 
+import javax.validation.ValidationException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class FilmService {
-    private int nextFilmId = 1;
-    private final HashMap<Integer, Film> films = new HashMap<>();
-    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+    private final FilmStorage storage;
+
+    private final UserService userService;
+
+    @Autowired
+    public FilmService(FilmStorage storage, UserService userService) {
+        this.storage = storage;
+        this.userService = userService;
+    }
+
+    public List<Long> addLike(String stringFilmId, String stringUserId) {
+        Film film = findFilmById(stringFilmId);
+        User user = userService.findUserById(stringUserId);
+        film.addLike(user.getId());
+        return new ArrayList<>(film.getLikes());
+    }
+
+    public List<Long> deleteLike(String stringFilmId, String stringUserId) {
+        Film film = findFilmById(stringFilmId);
+        User user = userService.findUserById(stringUserId);
+        if (!film.deleteLike(user.getId())) {
+            log.warn("Пользователь c id {} не ставил лайки фильму c id {}", stringUserId, stringFilmId);
+            throw new NotFoundException(
+                    String.format("Пользователь c id %s не ставил лайки фильму c id %s",
+                            stringUserId, stringFilmId));
+        }
+        return new ArrayList<>(film.getLikes());
+    }
+
+    public List<Film> listTopFilms(Integer count) {
+        return listFilms().stream()
+                .sorted((f1, f2) -> f2.getLikes().size() - f1.getLikes().size())
+                .limit(count)
+                .collect(Collectors.toList());
+    }
 
     public List<Film> listFilms() {
-        log.debug("Текущее количество фильмов: {}", films.size());
-        return new ArrayList<>(films.values());
+        return storage.listFilms();
     }
 
-    public Film addFilm(Film film) throws JsonProcessingException {
-        int id = nextFilmId++;
-        film.setId(id);
-        films.put(id, film);
-        log.debug("Фильм {} сохранен", mapper.writeValueAsString(film));
-        return film;
+    public Film addFilm(Film film) {
+        return storage.addFilm(film);
     }
 
-    public Film updateFilm(Film film) throws JsonProcessingException {
-        int id = film.getId();
-        if (id == 0) {
-            log.warn("Отсутствует id");
-            throw new NotFoundException("Отсутствует id");
-        } else if (!films.containsKey(film.getId())) {
-            log.warn("Фильм с id {} не найден", id);
-            throw new NotFoundException("Фильм с id " + id + " не найден");
-        } else {
-            films.put(id, film);
-            log.debug("Фильм {} обновлен", mapper.writeValueAsString(film));
-        }
-        return film;
+    public Film updateFilm(Film film) {
+        return storage.updateFilm(film);
+    }
+
+    public Film findFilmById(String stringId) {
+        long id = IdValidator.parseId(stringId);
+        return storage.findFilmById(id);
     }
 }
