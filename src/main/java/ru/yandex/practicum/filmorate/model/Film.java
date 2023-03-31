@@ -34,10 +34,6 @@ public class Film {
     }
 
     public boolean deleteLike(long id) {
-        if (!likes.contains(id)) {
-            return false;
-        }
-        likes.remove(id);
-        return true;
+        return likes.remove(id);
     }
 }

@@ -31,10 +31,6 @@ public class User {
     }
 
     public boolean deleteFriend(long id) {
-        if (!friends.contains(id)) {
-            return false;
-        }
-        friends.remove(id);
-        return true;
+        return friends.remove(id);
     }
 }

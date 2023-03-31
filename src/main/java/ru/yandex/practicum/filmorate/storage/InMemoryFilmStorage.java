@@ -28,7 +28,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     public Film findFilmById(long id) {
         if (!films.containsKey(id)) {
             log.warn("Фильм с id {} не найден", id);
-            throw new NotFoundException(String.format("Фильм с id %s не найден", id));
+            throw new NotFoundException(String.format("Фильм с id %d не найден", id));
         }
         return films.get(id);
     }
@@ -52,7 +52,7 @@ public class InMemoryFilmStorage implements FilmStorage {
             throw new NotFoundException("Отсутствует id");
         } else if (!films.containsKey(film.getId())) {
             log.warn("Фильм с id {} не найден", id);
-            throw new NotFoundException("Фильм с id " + id + " не найден");
+            throw new NotFoundException(String.format("Фильм с id %d не найден", id));
         } else {
             films.put(id, film);
             log.debug("Фильм {} обновлен", mapper.writeValueAsString(film));

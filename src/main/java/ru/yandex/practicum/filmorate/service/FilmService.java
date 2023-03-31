@@ -38,7 +38,7 @@ public class FilmService {
         if (!film.deleteLike(userId)) {
             log.warn("Пользователь c id {} не ставил лайки фильму c id {}", userId, filmId);
             throw new NotFoundException(
-                    String.format("Пользователь c id %s не ставил лайки фильму c id %s",
+                    String.format("Пользователь c id %d не ставил лайки фильму c id %d",
                             userId, filmId));
         }
         return new ArrayList<>(film.getLikes());

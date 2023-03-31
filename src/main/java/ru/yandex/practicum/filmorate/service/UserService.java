@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,8 +16,6 @@ import java.util.stream.Collectors;
 public class UserService {
     private final UserStorage storage;
 
-    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
-
     @Autowired
     public UserService(UserStorage storage) {
         this.storage = storage;
@@ -28,7 +25,7 @@ public class UserService {
         User user = findUserById(id);
         log.debug("Текущее количество друзей у пользователя с id {}: {}", id, user.getFriends().size());
         return user.getFriends().stream()
-                .map(i -> storage.findUserById(i))
+                .map(storage::findUserById)
                 .collect(Collectors.toList());
     }
 
@@ -44,12 +41,15 @@ public class UserService {
     public List<Long> deleteFriend(long id, long friendId) {
         User user = findUserById(id);
         User userFriend = findUserById(friendId);
-        boolean isFriends = user.deleteFriend(userFriend.getId()) && userFriend.deleteFriend(user.getId());
-        if (!isFriends) {
+
+        if (!user.deleteFriend(friendId)) {
             log.warn("Пользователь c id {} не является другом пользователя c id {}", id, friendId);
             throw new NotFoundException(
-                    String.format("Пользователь c id %s не является другом пользователя c id %s",
+                    String.format("Пользователь c id %d не является другом пользователя c id %d",
                             id, friendId));
+        }
+        if (!userFriend.deleteFriend(id)) {
+            log.debug("Пользователь c id {} удалил пользователя c id {} ранее", friendId, id);
         }
         log.debug("Текущее количество друзей у пользователя с id {}: {}", id, user.getFriends().size());
         return new ArrayList<>(user.getFriends());
@@ -61,7 +61,7 @@ public class UserService {
 
         return user.getFriends().stream()
                 .filter(otherUser.getFriends()::contains)
-                .map(i -> storage.findUserById(i))
+                .map(storage::findUserById)
                 .collect(Collectors.toList());
     }
 
