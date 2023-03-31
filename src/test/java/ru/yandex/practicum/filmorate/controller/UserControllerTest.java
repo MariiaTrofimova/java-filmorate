@@ -8,7 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -236,5 +236,119 @@ class UserControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(mvcResult ->
                         mvcResult.getResolvedException().getMessage().equals("Пользователь с id 1 не найден"));
+    }
+
+    @Test
+    void shouldReturnEmptyListFriends() throws Exception {
+        when(service.listFriends(1)).thenReturn(Collections.EMPTY_LIST);
+        this.mockMvc
+                .perform(get(url + "/1/friends"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    void shouldReturnSingleListFriends() throws Exception {
+        when(service.listFriends(1)).thenReturn(List.of(
+                userBuilder.id(2).login("Login2").email("e2@mail.ru").name("name2").build()));
+        mockMvc.perform(get(url + "/1/friends"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()", is(1)))
+                .andExpect(jsonPath("$[0].id", is(2)));
+    }
+
+    @Test
+    void listFriendsNotExistingId() throws Exception {
+        when(service.listFriends(1)).thenThrow(new NotFoundException("Пользователь с id 1 не найден"));
+        this.mockMvc
+                .perform(get(url + "/1/friends"))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(mvcResult ->
+                        mvcResult.getResolvedException().getMessage().equals("Пользователь с id 1 не найден"));
+    }
+
+    @Test
+    void listFriendsNotValidId() throws Exception {
+        this.mockMvc
+                .perform(get(url + "/abc/friends"))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(mvcResult ->
+                        mvcResult.getResolvedException().getMessage().equals("Переменная id: abc должна быть long."));
+    }
+
+    @Test
+    void shouldReturnEmptyListCommonFriends() throws Exception {
+        when(service.listCommonFriends(1, 2)).thenReturn(Collections.EMPTY_LIST);
+        this.mockMvc
+                .perform(get(url + "/1/friends/common/2"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    void shouldReturnSingleListCommonFriends() throws Exception {
+        when(service.listCommonFriends(1, 2)).thenReturn(List.of(
+                userBuilder.id(3).login("Login3").email("e3@mail.ru").name("name3").build()));
+        mockMvc.perform(get(url + "/1/friends/common/2"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()", is(1)))
+                .andExpect(jsonPath("$[0].id", is(3)));
+    }
+
+    @Test
+    void listCommonFriendsNullId() throws Exception {
+        this.mockMvc
+                .perform(get(url + "//friends/common/"))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(mvcResult ->
+                        mvcResult.getResolvedException().getMessage().equals("Неизвестный запрос."));
+    }
+
+    @Test
+    void shouldFindUserById() throws Exception {
+        user = userBuilder.id(1).name("Login").build();
+        String json = mapper.writeValueAsString(user);
+
+        when(service.findUserById(1)).thenReturn(user);
+        mockMvc.perform(get(url + "/1"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(json));
+    }
+
+    @Test
+    void findUserByIdNotExistingId() throws Exception {
+        when(service.findUserById(1)).thenThrow(new NotFoundException("Пользователь с id 1 не найден"));
+        mockMvc.perform(get(url + "/1"))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(mvcResult ->
+                        mvcResult.getResolvedException().getMessage().equals("Пользователь с id 1 не найден"));
+    }
+
+    @Test
+    void shouldAddFriend() throws Exception {
+        when(service.addFriend(1, 2)).thenReturn(List.of(2L));
+        mockMvc.perform(put(url + "/1/friends/2"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()", is(1)))
+                .andExpect(jsonPath("$[0]", is(2)));
+    }
+
+    @Test
+    void shouldDeleteFriend() throws Exception {
+        when(service.deleteFriend(1, 2)).thenReturn(Collections.EMPTY_LIST);
+        mockMvc.perform(delete(url + "/1/friends/2"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()", is(0)));
     }
 }

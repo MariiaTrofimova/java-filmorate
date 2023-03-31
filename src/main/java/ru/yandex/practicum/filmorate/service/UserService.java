@@ -1,52 +1,83 @@
 package ru.yandex.practicum.filmorate.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class UserService {
-    private int nextUserId = 1;
-    private final HashMap<Integer, User> users = new HashMap<>();
-    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+    private final UserStorage storage;
+
+    @Autowired
+    public UserService(UserStorage storage) {
+        this.storage = storage;
+    }
+
+    public List<User> listFriends(long id) {
+        User user = findUserById(id);
+        log.debug("Текущее количество друзей у пользователя с id {}: {}", id, user.getFriends().size());
+        return user.getFriends().stream()
+                .map(storage::findUserById)
+                .collect(Collectors.toList());
+    }
+
+    public List<Long> addFriend(long id, long friendId) {
+        User user = findUserById(id);
+        User userFriend = findUserById(friendId);
+        user.addFriend(userFriend.getId());
+        userFriend.addFriend(user.getId());
+        log.debug("Текущее количество друзей у пользователя с id {}: {}", id, user.getFriends().size());
+        return new ArrayList<>(user.getFriends());
+    }
+
+    public List<Long> deleteFriend(long id, long friendId) {
+        User user = findUserById(id);
+        User userFriend = findUserById(friendId);
+
+        if (!user.deleteFriend(friendId)) {
+            log.warn("Пользователь c id {} не является другом пользователя c id {}", id, friendId);
+            throw new NotFoundException(
+                    String.format("Пользователь c id %d не является другом пользователя c id %d",
+                            id, friendId));
+        }
+        if (!userFriend.deleteFriend(id)) {
+            log.debug("Пользователь c id {} удалил пользователя c id {} ранее", friendId, id);
+        }
+        log.debug("Текущее количество друзей у пользователя с id {}: {}", id, user.getFriends().size());
+        return new ArrayList<>(user.getFriends());
+    }
+
+    public List<User> listCommonFriends(long id, long otherId) {
+        User user = findUserById(id);
+        User otherUser = findUserById(otherId);
+
+        return user.getFriends().stream()
+                .filter(otherUser.getFriends()::contains)
+                .map(storage::findUserById)
+                .collect(Collectors.toList());
+    }
 
     public List<User> listUsers() {
-        log.debug("Текущее количество пользователей: {}", users.size());
-        return new ArrayList<>(users.values());
+        return storage.listUsers();
     }
 
-    public User addUser(User user) throws JsonProcessingException {
-        int id = nextUserId++;
-        user.setId(id);
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-            log.info("Имя не указано. Вместо него будет использован логин");
-        }
-        users.put(id, user);
-        log.debug("Пользователь {} сохранен", mapper.writeValueAsString(user));
-        return user;
+    public User addUser(User user) {
+        return storage.addUser(user);
     }
 
-    public User updateUser(User user) throws JsonProcessingException {
-        int id = user.getId();
-        if (id == 0) {
-            log.warn("Отсутствует id");
-            throw new NotFoundException("Отсутствует id");
-        } else if (!users.containsKey(id)) {
-            log.warn("Пользователь с id {} не найден", id);
-            throw new NotFoundException("Пользователь с id " + id + " не найден");
-        } else {
-            users.put(id, user);
-            log.debug("Пользователь {} обновлен", mapper.writeValueAsString(user));
-        }
-        return user;
+    public User updateUser(User user) {
+        return storage.updateUser(user);
+    }
+
+    public User findUserById(long id) {
+        return storage.findUserById(id);
     }
 }

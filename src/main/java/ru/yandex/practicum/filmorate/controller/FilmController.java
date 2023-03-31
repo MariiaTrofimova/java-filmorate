@@ -1,8 +1,5 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -16,30 +13,49 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
 @RequestMapping("/films")
-@Slf4j
 public class FilmController {
 
     private final FilmService service;
 
-    public FilmController (@Autowired FilmService service) {
+    @Autowired
+    public FilmController(FilmService service) {
         this.service = service;
     }
-
-    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 
     @GetMapping
     public List<Film> listFilms() {
         return service.listFilms();
     }
 
+    @GetMapping("/{id}")
+    public Film findFilmById(@PathVariable long id) {
+        return service.findFilmById(id);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> listTopFilms(
+            @RequestParam(defaultValue = "10") Integer count) {
+        return service.listTopFilms(count);
+    }
+
     @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public Film addFilm(@Valid @RequestBody Film film) throws JsonProcessingException {
+    public Film addFilm(@Valid @RequestBody Film film) {
         return service.addFilm(film);
     }
 
     @PutMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    public Film updateFilm(@Valid @RequestBody Film film) throws JsonProcessingException {
+    public Film updateFilm(@Valid @RequestBody Film film) {
         return service.updateFilm(film);
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public List<Long> addLike(@PathVariable long id, @PathVariable long userId) {
+        return service.addLike(id, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public List<Long> deleteLike(@PathVariable long id, @PathVariable long userId) {
+        return service.deleteLike(id, userId);
     }
 }
