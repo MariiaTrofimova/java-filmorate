@@ -1,0 +1,147 @@
+<svg class="diagram-root" style="background: white" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+    <style>.diagram-root { font-family: "Helvetica Neue", sans-serif; font-size: 12px; } .t { overflow: visible; } .t-bg
+        { y: 40; fill: white; stroke: #323c46; stroke-width: 2; } .th { fill: white; stroke: #323c46; stroke-width: 2; }
+        .tht { fill: #323c46; font-size: 14px; font-weight: bold; } .tf { fill: #323c46; overflow: visible; } .tf.pk {
+        fill: #323c46; font-weight: bold; } .tf.fk { font-weight: bold; } .ty { fill: #323c46; font-weight: normal;
+        text-anchor: end; } .r { fill: transparent; stroke: #4e4e4e; stroke-width: 1; } .l { stroke: 1; } .i { fill:
+        #a0a0a0; stroke: #a0a0a0; } .i.ix { fill: #a0a0a0; stroke: #000; } .fa { fill: transparent; overflow: visible; }
+        .fa .bg.hover { fill: #f3f3f3; } .c { cy: 12; r: 4; stroke: #424242; fill: #424242; } .hr { fill: transparent;
+        stroke: #323c46; stroke-opacity: 0.035; stroke-width: 13; } .dc { stroke: #fa5a3c; fill: #fa5a3c; } .x { stroke:
+        white; stroke-width: 1; } .hl .th { fill: #323c46; } .hl .tht { fill: white; } .fhl .bg { fill: #efefef; } .fhls
+        .bg { } .r.hl { stroke: black; } .dim { opacity: 0.25; }
+    </style>
+    <g class="drawing-wrapper" transform="translate(-84.3636363636363, 9.090909090909097) scale(1,1)">
+        <g class="rs">
+            <path d="M 227.08 287.90999999999997 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 227.08 287.90999999999997 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M227.08 287.90999999999997 L227.08 287.90999999999997 239.08 287.90999999999997 M 227.08 293.90999999999997 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 227.08 293.90999999999997 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M227.08 293.90999999999997 L227.08 293.90999999999997 234.08 287.90999999999997 227.08 281.90999999999997 M 227.08 281.90999999999997 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 227.08 281.90999999999997 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M239.08 287.90999999999997 C 289.144 287.90999999999997, 289.12 93.36, 239.12 93.36 M 227.12 93.36 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 227.12 93.36 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M227.12 93.36 L227.12 93.36 239.12 93.36 M233.12 99.36 L233.12 99.36 233.12 87.36"
+                  id="h3750219334" class="r"></path>
+            <path d="M 227.08 312.90999999999997 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 227.08 312.90999999999997 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M227.08 312.90999999999997 L227.08 312.90999999999997 239.08 312.90999999999997 M 227.08 318.90999999999997 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 227.08 318.90999999999997 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M227.08 318.90999999999997 L227.08 318.90999999999997 234.08 312.90999999999997 227.08 306.90999999999997 M 227.08 306.90999999999997 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 227.08 306.90999999999997 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M239.08 312.90999999999997 C 289.144 312.90999999999997, 289.12 93.36, 239.12 93.36 M 227.12 93.36 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 227.12 93.36 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M227.12 93.36 L227.12 93.36 239.12 93.36 M233.12 99.36 L233.12 99.36 233.12 87.36"
+                  id="h3773101666" class="r"></path>
+            <path d="M 375 302 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 375 302 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M375 302 L375 302 363 302 M 375 308 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 375 308 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M375 308 L375 308 368 302 375 296 M 375 296 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 375 296 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M363 302 C 329.9574668041326 302, 328.31946680413256 202.91, 365.73 202.91 M 377.73 202.91 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 377.73 202.91 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M377.73 202.91 L377.73 202.91 365.73 202.91 M371.73 208.91 L371.73 208.91 371.73 196.91"
+                  id="h1737456162" class="r"></path>
+            <path d="M 673.38 214.5 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 673.38 214.5 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M673.38 214.5 L673.38 214.5 685.38 214.5 M 673.38 220.5 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 673.38 220.5 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M673.38 220.5 L673.38 220.5 680.38 214.5 673.38 208.5 M 673.38 208.5 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 673.38 208.5 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M685.38 214.5 C 735.38 214.5, 826.346 77.91, 533.77 77.91 M 521.77 77.91 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 521.77 77.91 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M521.77 77.91 L521.77 77.91 533.77 77.91 M527.77 83.91 L527.77 83.91 527.77 71.91"
+                  id="h1872362696" class="r"></path>
+            <path d="M 568 239.5 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 568 239.5 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M568 239.5 L568 239.5 556 239.5 M 568 245.5 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 568 245.5 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M568 245.5 L568 245.5 561 239.5 568 233.5 M 568 233.5 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 568 233.5 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M556 239.5 C 524.1666666666666 239.5, 524.1666666666666 335, 556 335 M 568 335 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 568 335 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M568 335 L568 335 556 335 M562 341 L562 341 562 329"
+                  id="h515368828" class="r"></path>
+            <path d="M 374 440 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 374 440 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M374 440 L374 440 362 440 M 374 446 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 374 446 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M374 446 L374 446 367 440 374 434 M 374 434 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 374 434 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M362 440 C 312 440, 309.762 77.91, 365.73 77.91 M 377.73 77.91 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 377.73 77.91 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M377.73 77.91 L377.73 77.91 365.73 77.91 M371.73 83.91 L371.73 83.91 371.73 71.91"
+                  id="h3355356883" class="r"></path>
+            <path d="M 374 465 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 374 465 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M374 465 L374 465 362 465 M 374 471 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 374 471 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M374 471 L374 471 367 465 374 459 M 374 459 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 374 459 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M362 465 Q 331.28 465, 300.56 279.18 T 239.12 93.36 M 227.12 93.36 m -1, 0 a 1,1 0 1,0 2,0 a 1,1 0 1,0 -2,0 M 227.12 93.36 m -0.5, 0 a 0.5,0.5 0 1,0 1,0 a 0.5,0.5 0 1,0 -1,0  M227.12 93.36 L227.12 93.36 239.12 93.36 M233.12 99.36 L233.12 99.36 233.12 87.36"
+                  id="h3860441800" class="r"></path>
+        </g>
+        <g class="hrs"></g>
+        <g class="ts">
+            <svg width="118.03" height="175" x="109.09" y="36.36" id="h2948373614" class="t">
+                <rect height="40" width="118.03" class="th"></rect>
+                <text x="13" y="25" class="tht">users</text>
+                <rect height="135" width="118.03" class="t-bg"></rect>
+                <text x="13" y="61" class="tf pk">user_id
+                    <tspan x="105.03" class="ty">int</tspan>
+                </text>
+                <path d="M7,14A2,2 0 0,1 5,12A2,2 0 0,1 7,10A2,2 0 0,1 9,12A2,2 0 0,1 7,14M12.65,10C11.83,7.67 9.61,6 7, 6A6, 6 0 0, 0 1, 12A6, 6 0 0, 0 7, 18C9.61, 18 11.83, 16.33 12.65, 14H17V18H21V14H23V10H12.65Z"
+                      class="i pk" transform="translate(72.356171875, 48) scale(0.65)"></path>
+                <text x="13" y="86" class="tf">email
+                    <tspan x="105.03" class="ty">varchar</tspan>
+                </text>
+                <text x="13" y="111" class="tf">login
+                    <tspan x="105.03" class="ty">varchar</tspan>
+                </text>
+                <text x="13" y="136" class="tf">name
+                    <tspan x="105.03" class="ty">varchar</tspan>
+                </text>
+                <text x="13" y="161" class="tf">birthday
+                    <tspan x="105.03" class="ty">date</tspan>
+                </text>
+            </svg>
+            <svg width="120.72" height="125" x="106.36" y="230.91" id="h1476665440" class="t">
+                <rect height="40" width="120.72" class="th"></rect>
+                <text x="13" y="25" class="tht">friendship</text>
+                <rect height="85" width="120.72" class="t-bg"></rect>
+                <text x="13" y="61" class="tf fk">user_id
+                    <tspan x="107.72" class="ty">int</tspan>
+                </text>
+                <text x="13" y="86" class="tf fk">friend_id
+                    <tspan x="107.72" class="ty">int</tspan>
+                </text>
+                <text x="13" y="111" class="tf">status
+                    <tspan x="107.72" class="ty">boolean</tspan>
+                </text>
+            </svg>
+            <svg width="144.04" height="200" x="377.73" y="20.91" id="h907613820" class="t">
+                <rect height="40" width="144.04" class="th"></rect>
+                <text x="13" y="25" class="tht">films</text>
+                <rect height="160" width="144.04" class="t-bg"></rect>
+                <text x="13" y="61" class="tf pk">film_id
+                    <tspan x="131.04" class="ty">int</tspan>
+                </text>
+                <path d="M7,14A2,2 0 0,1 5,12A2,2 0 0,1 7,10A2,2 0 0,1 9,12A2,2 0 0,1 7,14M12.65,10C11.83,7.67 9.61,6 7, 6A6, 6 0 0, 0 1, 12A6, 6 0 0, 0 7, 18C9.61, 18 11.83, 16.33 12.65, 14H17V18H21V14H23V10H12.65Z"
+                      class="i pk" transform="translate(98.36617187499999, 48) scale(0.65)"></path>
+                <text x="13" y="86" class="tf">name
+                    <tspan x="131.04" class="ty">varchar</tspan>
+                </text>
+                <text x="13" y="111" class="tf">description
+                    <tspan x="131.04" class="ty">varchar</tspan>
+                </text>
+                <text x="13" y="136" class="tf">release_date
+                    <tspan x="131.04" class="ty">date</tspan>
+                </text>
+                <text x="13" y="161" class="tf">duration
+                    <tspan x="131.04" class="ty">int</tspan>
+                </text>
+                <text x="13" y="186" class="tf fk">rating_id
+                    <tspan x="131.04" class="ty">int</tspan>
+                </text>
+            </svg>
+            <svg width="144.04" height="125" x="375" y="245" id="h2037942479" class="t">
+                <rect height="40" width="144.04" class="th"></rect>
+                <text x="13" y="25" class="tht">rating</text>
+                <rect height="85" width="144.04" class="t-bg"></rect>
+                <text x="13" y="61" class="tf pk">rating_id
+                    <tspan x="131.04" class="ty">int</tspan>
+                </text>
+                <path d="M7,14A2,2 0 0,1 5,12A2,2 0 0,1 7,10A2,2 0 0,1 9,12A2,2 0 0,1 7,14M12.65,10C11.83,7.67 9.61,6 7, 6A6, 6 0 0, 0 1, 12A6, 6 0 0, 0 7, 18C9.61, 18 11.83, 16.33 12.65, 14H17V18H21V14H23V10H12.65Z"
+                      class="i pk" transform="translate(98.36617187499999, 48) scale(0.65)"></path>
+                <text x="13" y="86" class="tf">name
+                    <tspan x="131.04" class="ty">varchar</tspan>
+                </text>
+                <text x="13" y="111" class="tf">description
+                    <tspan x="131.04" class="ty">varchar</tspan>
+                </text>
+            </svg>
+            <svg width="105.38" height="100" x="568" y="157.5" id="h1016190631" class="t">
+                <rect height="40" width="105.38" class="th"></rect>
+                <text x="13" y="25" class="tht">film_genre</text>
+                <rect height="60" width="105.38" class="t-bg"></rect>
+                <text x="13" y="61" class="tf fk">film_id
+                    <tspan x="92.38" class="ty">int</tspan>
+                </text>
+                <text x="13" y="86" class="tf fk">genre_id
+                    <tspan x="92.38" class="ty">int</tspan>
+                </text>
+            </svg>
+            <svg width="125.38" height="100" x="568" y="278" id="h1304626560" class="t">
+                <rect height="40" width="125.38" class="th"></rect>
+                <text x="13" y="25" class="tht">genre</text>
+                <rect height="60" width="125.38" class="t-bg"></rect>
+                <text x="13" y="61" class="tf pk">genre_id
+                    <tspan x="112.38" class="ty">int</tspan>
+                </text>
+                <path d="M7,14A2,2 0 0,1 5,12A2,2 0 0,1 7,10A2,2 0 0,1 9,12A2,2 0 0,1 7,14M12.65,10C11.83,7.67 9.61,6 7, 6A6, 6 0 0, 0 1, 12A6, 6 0 0, 0 7, 18C9.61, 18 11.83, 16.33 12.65, 14H17V18H21V14H23V10H12.65Z"
+                      class="i pk" transform="translate(79.706171875, 48) scale(0.65)"></path>
+                <text x="13" y="86" class="tf">name
+                    <tspan x="112.38" class="ty">varchar</tspan>
+                </text>
+            </svg>
+            <svg width="98.03" height="100" x="374" y="383" id="h1213380004" class="t">
+                <rect height="40" width="98.03" class="th"></rect>
+                <text x="13" y="25" class="tht">likes</text>
+                <rect height="60" width="98.03" class="t-bg"></rect>
+                <text x="13" y="61" class="tf fk">film_id
+                    <tspan x="85.03" class="ty">int</tspan>
+                </text>
+                <text x="13" y="86" class="tf fk">user_id
+                    <tspan x="85.03" class="ty">int</tspan>
+                </text>
+            </svg>
+        </g>
+    </g>
+</svg>
