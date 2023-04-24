@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.dao;
 import java.util.List;
 
 public interface LikeDao {
-    List<Long> getLikesByFilm(int filmId);
+    List<Long> getLikesByFilm(long filmId);
 
     List<Long> getTopFilmId (int count);
 

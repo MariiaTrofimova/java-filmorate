@@ -29,9 +29,8 @@ public class Film {
     private LocalDate releaseDate;
     @PositiveOrZero(message = "Продолжительность фильма отрицательная")
     private int duration;
-
-    private final Mpa mpa;
-    private final Set<Integer> genres = new HashSet<>(); //id жанров
+    private Mpa mpa;
+    private final Set<Genre> genres = new HashSet<>(); //список жанров
     private final Set<Long> likes = new HashSet<>(); //id друзей, поставивших лайки
 
     public void addLike(long id) {
@@ -42,19 +41,19 @@ public class Film {
         return likes.remove(id);
     }
 
-    public Set<Integer> getGenres() {
+    public Set<Genre> getGenres() {
         return genres;
     }
 
-    public void addGenre(int id) {
-        genres.add(id);
-    };
+    public void addGenre(Genre genre) {
+        genres.add(genre);
+    }
 
-    public boolean deleteGenre(int id) {
-        return genres.remove(id);
-    };
+    public boolean deleteGenre(Genre genre) {
+        return genres.remove(genre);
+    }
 
-    public Map<String,Object> toMap() {
+    public Map<String, Object> toMap() {
         Map<String, Object> values = new HashMap<>();
         values.put("name", name);
         values.put("description", description);

@@ -15,7 +15,7 @@ public class LikeDaoImpl implements LikeDao {
     }
 
     @Override
-    public List<Long> getLikesByFilm(int filmId) {
+    public List<Long> getLikesByFilm(long filmId) {
         String sql = "select user_id from likes where film_id =?;";
         return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getLong("user_id"), filmId);
     }

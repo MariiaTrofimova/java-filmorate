@@ -7,21 +7,23 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
+@Service("InMemoryFilmService")
 @Slf4j
 public class InMemoryFilmService {
     private final FilmStorage storage;
 
-    private final InMemoryUserService userService;
+    private final UserService userService;
 
     @Autowired
-    public InMemoryFilmService(@Qualifier("InMemoryFilmStorage") FilmStorage storage, InMemoryUserService userService) {
+    public InMemoryFilmService(@Qualifier("InMemoryFilmStorage") FilmStorage storage,
+                               @Qualifier("InMemoryUserService") UserService userService) {
         this.storage = storage;
         this.userService = userService;
     }
