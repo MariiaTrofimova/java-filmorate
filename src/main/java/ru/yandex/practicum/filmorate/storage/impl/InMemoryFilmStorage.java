@@ -34,6 +34,11 @@ public class InMemoryFilmStorage implements FilmStorage {
         return films.get(id);
     }
 
+    @Override
+    public List<Film> listTopFilms(int count) {
+        return null;
+    }
+
     @SneakyThrows
     @Override
     public Film addFilm(Film film) {

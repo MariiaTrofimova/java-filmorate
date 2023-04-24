@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.dao.impl;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dao.LikeDao;
+import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.List;
 

@@ -5,11 +5,12 @@ INSERT INTO MPA( NAME, DESCRIPTION )  VALUES ( 'PG-13', 'Детям до 13 ле
 INSERT INTO MPA( NAME, DESCRIPTION )  VALUES ( 'R', 'Лицам до 17 лет просматривать фильм можно только в присутствии взрослого');
 INSERT INTO MPA ( NAME, DESCRIPTION )  VALUES ( 'NC-17', 'Лицам до 18 лет просмотр запрещён');
 
-INSERT INTO GENRE ( NAME )  VALUES ('Драма');
-INSERT INTO GENRE ( NAME )  VALUES ('Мелодрама');
 INSERT INTO GENRE ( NAME )  VALUES ('Комедия');
-INSERT INTO GENRE ( NAME )  VALUES ('Фантастика');
-INSERT INTO GENRE ( NAME )  VALUES ('Ужасы');
+INSERT INTO GENRE ( NAME )  VALUES ('Драма');
+INSERT INTO GENRE ( NAME )  VALUES ('Мультфильм');
+INSERT INTO GENRE ( NAME )  VALUES ('Триллер');
+INSERT INTO GENRE ( NAME )  VALUES ('Документальный');
+INSERT INTO GENRE ( NAME )  VALUES ('Боевик');
 
 /*MERGE INTO MPA
     KEY(MPA_ID)

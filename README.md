@@ -40,14 +40,15 @@ WHERE film_id IN
 ```
 SELECT f.*
 FROM films AS f
-JOIN
+LEFT JOIN
   (SELECT film_id,
           COUNT(user_id) AS likes_qty
    FROM likes
    GROUP BY film_id
    ORDER BY likes_qty DESC
-   LIMIT 10) AS top ON f.film_id = top.film_id
-ORDER BY top.likes_qty DESC;
+   LIMIT ?) AS top ON f.film_id = top.film_id
+ORDER BY top.likes_qty DESC
+LIMIT ?;
 ```
 ### User
 

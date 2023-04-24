@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.dao.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dao.MpaDao;
@@ -30,12 +31,12 @@ public class MpaDaoImpl implements MpaDao {
     @Override
     public Mpa findMpaById(int id) {
         String sql = "select * from mpa where mpa_id = ?";
-        Optional<Mpa> mpaOptional = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToMpa(rs)).stream().findAny();
-        if (mpaOptional.isPresent()) {
-            return mpaOptional.get();
+        try {
+            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRowToMpa(rs), id);
+        } catch (DataRetrievalFailureException e) {
+            log.warn("Mpa с id {} не найден", id);
+            throw new NotFoundException(String.format("Mpa с id %d не найден", id));
         }
-        log.warn("Рейтинг MPA с id {} не найден", id);
-        throw new NotFoundException(String.format("Рейтинг MPA с id %d не найден", id));
     }
 
     private Mpa mapRowToMpa(ResultSet rs) throws SQLException {

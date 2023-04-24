@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.dao.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dao.GenreDao;
@@ -30,12 +31,12 @@ public class GenreDaoImpl implements GenreDao {
     @Override
     public Genre findGenreById(int id) {
         String sql = "select * from genre where genre_id = ?";
-        Optional<Genre> genreOptional = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToGenre(rs)).stream().findAny();
-        if (genreOptional.isPresent()) {
-            return genreOptional.get();
+        try {
+            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRowToGenre(rs), id);
+        } catch (DataRetrievalFailureException e) {
+            log.warn("Жанр с id {} не найден", id);
+            throw new NotFoundException(String.format("Жанр с id %d не найден", id));
         }
-        log.warn("Жанр с id {} не найден", id);
-        throw new NotFoundException(String.format("Жанр с id %d не найден", id));
     }
 
     private Genre mapRowToGenre(ResultSet rs) throws SQLException {

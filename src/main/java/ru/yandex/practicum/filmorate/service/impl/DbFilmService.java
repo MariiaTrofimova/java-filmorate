@@ -8,7 +8,9 @@ import ru.yandex.practicum.filmorate.dao.GenreDao;
 import ru.yandex.practicum.filmorate.dao.LikeDao;
 import ru.yandex.practicum.filmorate.dao.MpaDao;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.List;
@@ -21,14 +23,18 @@ public class DbFilmService implements FilmService {
     private final GenreDao genreDao;
     private final MpaDao mpaDao;
     private final FilmGenreDao filmGenreDao;
+    private final UserService userService;
 
     @Autowired
-    public DbFilmService(@Qualifier("FilmDbStorage") FilmStorage storage, LikeDao likeDao, GenreDao genreDao, MpaDao mpaDao, FilmGenreDao filmGenreDao) {
+    public DbFilmService(@Qualifier("FilmDbStorage") FilmStorage storage,
+                         LikeDao likeDao, GenreDao genreDao, MpaDao mpaDao, FilmGenreDao filmGenreDao,
+                         @Qualifier("DbUserService") UserService userService) {
         this.storage = storage;
         this.likeDao = likeDao;
         this.genreDao = genreDao;
         this.mpaDao = mpaDao;
         this.filmGenreDao = filmGenreDao;
+        this.userService = userService;
     }
 
     @Override
@@ -63,13 +69,13 @@ public class DbFilmService implements FilmService {
         Film filmUpdated = storage.updateFilm(film);
         filmGenreDao.clearGenresFromFilm(film.getId());
         film.getGenres().forEach(genre -> filmGenreDao.addGenreToFilm(film.getId(), genre.getId()));
+        //List<Genre> filmGenres = film.getGenres().stream().sorted().collect(Collectors.toList());
         return filmUpdated;
     }
 
     @Override
     public List<Film> listTopFilms(Integer count) {
-        return likeDao.getTopFilmId(count).stream()
-                .map(storage::findFilmById)
+        return storage.listTopFilms(count).stream()
                 .peek(film -> film.setMpa(mpaDao.findMpaById(film.getMpa().getId())))
                 .peek(film -> filmGenreDao.getGenresByFilm(film.getId()).stream()
                         .map(genreDao::findGenreById)
@@ -79,12 +85,16 @@ public class DbFilmService implements FilmService {
 
     @Override
     public List<Long> addLike(long filmId, long userId) {
+        findFilmById(filmId);
+        userService.findUserById(userId);
         likeDao.addLike(filmId, userId);
         return likeDao.getLikesByFilm(filmId);
     }
 
     @Override
     public List<Long> deleteLike(long filmId, long userId) {
+        findFilmById(filmId);
+        userService.findUserById(userId);
         likeDao.deleteLike(filmId, userId);
         return likeDao.getLikesByFilm(filmId);
     }
