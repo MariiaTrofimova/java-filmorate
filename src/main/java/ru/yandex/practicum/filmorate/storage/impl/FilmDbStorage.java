@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
@@ -36,12 +37,12 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Film findFilmById(long id) {
         String sql = "select * from films where film_id = ?";
-        Optional<Film> filmOptional = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs)).stream().findAny();
-        if (filmOptional.isPresent()) {
-            return filmOptional.get();
+        try {
+            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRowToFilm(rs), id);
+        } catch (DataRetrievalFailureException e) {
+            log.warn("Фильм с id {} не найден", id);
+            throw new NotFoundException(String.format("Фильм с id %d не найден", id));
         }
-        log.warn("Фильм с id {} не найден", id);
-        throw new NotFoundException(String.format("Фильм с id %d не найден", id));
     }
 
     @Override
@@ -62,15 +63,16 @@ public class FilmDbStorage implements FilmStorage {
         String sql = "update films set " +
                 "name = ?, description = ?, release_date = ?, duration = ?, mpa_id = ? " +
                 "where film_id = ?";
-        jdbcTemplate.update(sql,
+        if (jdbcTemplate.update(sql,
                 film.getName(),
                 film.getDescription(),
                 film.getReleaseDate(),
                 film.getDuration(),
                 film.getMpa().getId(),
-                film.getId());
-        //film.getGenres().forEach(genreId -> filmGenreDao.addGenreToFilm(film.getId(), genreId));
-        return film;
+                film.getId()) > 0) {
+        return film;}
+        log.warn("Пользователь с id {} не найден", film.getId());
+        throw new NotFoundException(String.format("Пользователь с id %d не найден", film.getId()));
     }
 
     private Film mapRowToFilm(ResultSet rs) throws SQLException {
@@ -79,7 +81,6 @@ public class FilmDbStorage implements FilmStorage {
         String description = rs.getString("description");
         LocalDate releaseDate = rs.getDate("release_date").toLocalDate();
         int duration = rs.getInt("duration");
-        //Mpa mpa = mpaDao.findMpaById(rs.getInt("mpa_id"));
         return Film.builder()
                 .id(id)
                 .name(name)
@@ -87,7 +88,5 @@ public class FilmDbStorage implements FilmStorage {
                 .releaseDate(releaseDate)
                 .duration(duration)
                 .build();
-      /*  filmGenreDao.getGenresByFilm(id)
-                .forEach(film::addGenre);*/
     }
 }

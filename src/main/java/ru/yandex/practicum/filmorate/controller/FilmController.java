@@ -1,10 +1,11 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.impl.InMemoryFilmService;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -15,10 +16,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RequestMapping("/films")
 public class FilmController {
 
-    private final InMemoryFilmService service;
+    private final FilmService service;
 
     @Autowired
-    public FilmController(InMemoryFilmService service) {
+    public FilmController(@Qualifier("DbFilmService") FilmService service) {
         this.service = service;
     }
 

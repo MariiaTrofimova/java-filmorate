@@ -46,20 +46,24 @@ public class DbUserService implements UserService {
     @Override
     public List<User> listFriends(long id) {
         return friendshipDao.getFriendsByUser(id).stream()
-                .map(storage::findUserById)
+                .map(this::findUserById)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<User> listCommonFriends(long id, long otherId) {
+        findUserById(id);
+        findUserById(otherId);
         return friendshipDao.getFriendsByUser(id).stream()
                 .filter(friendshipDao.getFriendsByUser(otherId)::contains)
-                .map(storage::findUserById)
+                .map(this::findUserById)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Long> addFriend(long id, long friendId) {
+        findUserById(id);
+        findUserById(friendId);
         boolean isUserToFriend = friendshipDao.getFriendsByUser(id).contains(friendId);
         boolean isFriendToUser = friendshipDao.getFriendsByUser(friendId).contains(id);
         if (!isUserToFriend && !isFriendToUser) {
@@ -74,21 +78,21 @@ public class DbUserService implements UserService {
 
     @Override
     public List<Long> deleteFriend(long id, long friendId) {
-        boolean isUserToFriend = friendshipDao.getFriendsByUser(id).contains(friendId);
-        boolean isFriendToUser = friendshipDao.getFriendsByUser(friendId).contains(id);
-        if (!isUserToFriend && !isFriendToUser){
-            log.warn("Пользователь c id {} не является другом пользователя c id {}", id, friendId);
+        findUserById(id);
+        findUserById(friendId);
+        boolean isUserHasFriend = friendshipDao.getFriendsByUser(id).contains(friendId);
+        boolean isFriendHasUser = friendshipDao.getFriendsByUser(friendId).contains(id);
+        if (!isUserHasFriend){
+            log.warn("Пользователь c id {} не является другом пользователя c id {}", friendId, id);
             throw new NotFoundException(
                     String.format("Пользователь c id %d не является другом пользователя c id %d",
-                            id, friendId));
-        } else if (!isUserToFriend) {
-            friendshipDao.deleteFriend(id, friendId);
-        } else if (!isFriendToUser) {
-            friendshipDao.updateFriend(friendId, id, false);
+                            friendId, id));
+        } else if (!isFriendHasUser) {
+            friendshipDao.deleteFriend(friendId, id);
         } else {
-            if (!friendshipDao.updateFriend(friendId, id, false)) {
-                friendshipDao.deleteFriend(id, friendId);
-                friendshipDao.addFriend(friendId, id);
+            if (!friendshipDao.updateFriend(id, friendId, false)) {
+                friendshipDao.deleteFriend(friendId, id );
+                friendshipDao.addFriend(id, friendId);
             }
         }
         return friendshipDao.getFriendsByUser(id);

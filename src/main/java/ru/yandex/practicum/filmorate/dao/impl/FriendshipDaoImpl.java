@@ -16,16 +16,16 @@ public class FriendshipDaoImpl implements FriendshipDao {
 
     @Override
     public List<Long> getFriendsByUser(long id) {
-        String sql = "select friend_id from friendship where user_id =? and status = '1' " +
-                "union select user_id from friendship where friend_id = ?;";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getLong("friend_id"), id);
+        String sql = "select friend_id from friendship where user_id =? and status = true " +
+                "union select user_id from friendship where friend_id = ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getLong("friend_id"), id, id);
     }
 
     @Override
     public boolean addFriend(long userId, long friendId) {
         String sql = "insert into friendship(user_id, friend_id, status) " +
-                "values (?, ?, 0)";
-        return jdbcTemplate.update(sql, userId, friendId) > 0;
+                "values (?, ?, false)";
+        return jdbcTemplate.update(sql, friendId, userId) > 0;
     }
 
     @Override
