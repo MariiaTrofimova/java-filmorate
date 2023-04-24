@@ -1,8 +1,8 @@
 # ER-диаграмма filmorate
 
-<img src = "https://github.com/MariiaTrofimova/filmorate-ER/blob/303445c5d288278efc6922e1e4eba9bf581cde8d/src/resource/filmorateER.svg" width="720" height = "520">
+<img src = "src/main/resources/static/filmorateER.svg" width="720" height = "520">
 
-[Ссылка на диаграмму](https://github.com/MariiaTrofimova/filmorate-ER/blob/303445c5d288278efc6922e1e4eba9bf581cde8d/src/resource/filmorateER.svg)\
+[Ссылка на диаграмму](src/main/resources/static/filmorateER.svg)\
 [Ссылка на диаграмму в редакторе диаграмм](https://app.quickdatabasediagrams.com/#/d/avNQfe)
 
 ## Примеры запросов
@@ -25,7 +25,7 @@ WHERE film_id = 1;
 ```
 
 #### Запрос топ-10 фильмов
-
+##### Вывод в порядке id
 ```
 SELECT *
 FROM films
@@ -36,7 +36,19 @@ WHERE film_id IN
      ORDER BY COUNT(user_id) DESC
      LIMIT 10);
 ```
-
+##### Вывод в порядке убывания лайков
+```
+SELECT f.*
+FROM films AS f
+JOIN
+  (SELECT film_id,
+          COUNT(user_id) AS likes_qty
+   FROM likes
+   GROUP BY film_id
+   ORDER BY likes_qty DESC
+   LIMIT 10) AS top ON f.film_id = top.film_id
+ORDER BY top.likes_qty DESC;
+```
 ### User
 
 #### Запрос списка пользователей
@@ -63,6 +75,7 @@ WHERE user_id IN
     (SELECT friend_id
      FROM friendship
      WHERE user_id = 1
+       AND status = '1'
      UNION SELECT user_id
      FROM friendship
      WHERE friend_id = 1);
@@ -73,21 +86,21 @@ WHERE user_id IN
 ```
 SELECT *
 FROM users
-WHERE user_id IN
-    (SELECT friend_id
-     FROM friendship
-     WHERE (user_id = 1
-            OR user_id = 2)
-       AND status = '1'
-       AND friend_id NOT IN (1,
-                             2)
-     UNION SELECT user_id
-     FROM friendship
-     WHERE (friend_id = 1
-            OR friend_id = 2)
-       AND status = '1'
-       AND user_id NOT IN (1,
-                           2));
+WHERE user_id IN (
+                    (SELECT friend_id
+                     FROM friendship
+                     WHERE user_id = 1
+                       AND status = '1'
+                     UNION SELECT user_id
+                     FROM friendship
+                     WHERE friend_id = 1) INTERSECT
+                    (SELECT friend_id
+                     FROM friendship
+                     WHERE user_id = 2
+                       AND status = '1'
+                     UNION SELECT user_id
+                     FROM friendship
+                     WHERE friend_id = 2));
 ```
 
 ## Описание БД
@@ -123,11 +136,11 @@ WHERE user_id IN
 * первичный ключ rating_id
 * name — значение рейтинга:
 * description — подробное описание, например:
-    - G — у фильма нет возрастных ограничений,
-    - PG — детям рекомендуется смотреть фильм с родителями,
-    - PG-13 — детям до 13 лет просмотр не желателен,
-    - R — лицам до 17 лет просматривать фильм можно только в присутствии взрослого,
-    - NC-17 — лицам до 18 лет просмотр запрещён.
+  - G — у фильма нет возрастных ограничений,
+  - PG — детям рекомендуется смотреть фильм с родителями,
+  - PG-13 — детям до 13 лет просмотр не желателен,
+  - R — лицам до 17 лет просматривать фильм можно только в присутствии взрослого,
+  - NC-17 — лицам до 18 лет просмотр запрещён.
 
 #### genre
 
@@ -136,12 +149,12 @@ WHERE user_id IN
 
 * первичный ключ genre_id — идентификатор жанра;
 * name — название жанра, например:
-    - Комедия.
-    - Драма.
-    - Мультфильм.
-    - Триллер.
-    - Документальный.
-    - Боевик.
+  - Комедия.
+  - Драма.
+  - Мультфильм.
+  - Триллер.
+  - Документальный.
+  - Боевик.
 
 #### film_genre
 

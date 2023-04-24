@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.service.impl.InMemoryUserService;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -15,10 +15,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RequestMapping(value = "/users", produces = "application/json")
 public class UserController {
 
-    private final UserService service;
+    private final InMemoryUserService service;
 
     @Autowired
-    public UserController(UserService service) {
+    public UserController(InMemoryUserService service) {
         this.service = service;
     }
 

@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.impl.InMemoryFilmService;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -15,10 +15,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RequestMapping("/films")
 public class FilmController {
 
-    private final FilmService service;
+    private final InMemoryFilmService service;
 
     @Autowired
-    public FilmController(FilmService service) {
+    public FilmController(InMemoryFilmService service) {
         this.service = service;
     }
 

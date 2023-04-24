@@ -10,7 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.impl.InMemoryFilmService;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -31,7 +31,7 @@ class FilmControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private FilmService service;
+    private InMemoryFilmService service;
 
     Film film;
     String url = "/films";
