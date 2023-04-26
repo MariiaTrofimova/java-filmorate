@@ -8,6 +8,6 @@ import lombok.Data;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Like {
-    private long film_id;
-    private long user_id;
+    private long filmId;
+    private long userId;
 }
