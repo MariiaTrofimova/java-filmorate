@@ -72,8 +72,8 @@ public class FilmDbStorage implements FilmStorage {
             //film.getGenres().stream().sorted();
             return film;
         }
-        log.warn("Пользователь с id {} не найден", film.getId());
-        throw new NotFoundException(String.format("Пользователь с id %d не найден", film.getId()));
+        log.warn("Фильм с id {} не найден", film.getId());
+        throw new NotFoundException(String.format("Фильм с id %d не найден", film.getId()));
     }
 
     public List<Film> listTopFilms(int count) {
@@ -84,17 +84,6 @@ public class FilmDbStorage implements FilmStorage {
                 "order by top.likes_qty desc " +
                 "limit ?";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), count, count);
-        //SELECT f.*
-        //FROM films AS f
-        //LEFT JOIN
-        //  (SELECT film_id,
-        //          COUNT(user_id) AS likes_qty
-        //   FROM likes
-        //   GROUP BY film_id
-        //   ORDER BY likes_qty DESC
-        //   LIMIT ?) AS top ON f.film_id = top.film_id
-        //ORDER BY top.likes_qty DESC
-        //LIMIT ?;
     }
 
     private Film mapRowToFilm(ResultSet rs) throws SQLException {

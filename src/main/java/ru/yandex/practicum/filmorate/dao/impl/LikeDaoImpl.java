@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.dao.impl;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dao.LikeDao;
-import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.List;
 
@@ -19,12 +18,6 @@ public class LikeDaoImpl implements LikeDao {
     public List<Long> getLikesByFilm(long filmId) {
         String sql = "select user_id from likes where film_id =?;";
         return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getLong("user_id"), filmId);
-    }
-
-    @Override
-    public List<Long> getTopFilmId(int count) {
-        String sql = "select film_id from likes group by film_id order by count(user_id) desc limit ?;";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getLong("user_id"), count);
     }
 
     @Override

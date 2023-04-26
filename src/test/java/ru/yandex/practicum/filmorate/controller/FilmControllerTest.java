@@ -1,16 +1,18 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.impl.InMemoryFilmService;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -24,14 +26,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(FilmController.class)
-class FilmControllerTest {
 
+@WebMvcTest(FilmController.class)
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
+class FilmControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private InMemoryFilmService service;
+    @Qualifier("DbFilmService")
+    private final FilmService service;
 
     Film film;
     String url = "/films";

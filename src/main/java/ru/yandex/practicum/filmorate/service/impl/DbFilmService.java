@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.dao.GenreDao;
 import ru.yandex.practicum.filmorate.dao.LikeDao;
 import ru.yandex.practicum.filmorate.dao.MpaDao;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
@@ -69,7 +68,6 @@ public class DbFilmService implements FilmService {
         Film filmUpdated = storage.updateFilm(film);
         filmGenreDao.clearGenresFromFilm(film.getId());
         film.getGenres().forEach(genre -> filmGenreDao.addGenreToFilm(film.getId(), genre.getId()));
-        //List<Genre> filmGenres = film.getGenres().stream().sorted().collect(Collectors.toList());
         return filmUpdated;
     }
 

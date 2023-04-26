@@ -82,7 +82,7 @@ public class DbUserService implements UserService {
         findUserById(friendId);
         boolean isUserHasFriend = friendshipDao.getFriendsByUser(id).contains(friendId);
         boolean isFriendHasUser = friendshipDao.getFriendsByUser(friendId).contains(id);
-        if (!isUserHasFriend){
+        if (!isUserHasFriend) {
             log.warn("Пользователь c id {} не является другом пользователя c id {}", friendId, id);
             throw new NotFoundException(
                     String.format("Пользователь c id %d не является другом пользователя c id %d",
@@ -91,7 +91,7 @@ public class DbUserService implements UserService {
             friendshipDao.deleteFriend(friendId, id);
         } else {
             if (!friendshipDao.updateFriend(id, friendId, false)) {
-                friendshipDao.deleteFriend(friendId, id );
+                friendshipDao.deleteFriend(friendId, id);
                 friendshipDao.addFriend(id, friendId);
             }
         }
