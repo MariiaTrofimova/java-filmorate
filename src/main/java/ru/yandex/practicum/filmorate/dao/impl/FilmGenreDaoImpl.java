@@ -34,8 +34,8 @@ public class FilmGenreDaoImpl implements FilmGenreDao {
     }
 
     @Override
-    public boolean clearGenresFromFilm(long film_id) {
+    public boolean clearGenresFromFilm(long filmId) {
         String sql = "delete from film_genre where film_id = ?";
-        return jdbcTemplate.update(sql, film_id) > 0;
+        return jdbcTemplate.update(sql, filmId) > 0;
     }
 }
