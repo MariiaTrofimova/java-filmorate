@@ -9,5 +9,5 @@ public interface FilmGenreDao {
 
     boolean deleteGenreFromFilm(long filmId, int genreId);
 
-    boolean clearGenresFromFilm(long film_id);
+    boolean clearGenresFromFilm(long filmId);
 }
