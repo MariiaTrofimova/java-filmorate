@@ -28,7 +28,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> listUsers() {
-        String sql = "select * from users;";
+        String sql = "select * from users";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToUser(rs));
     }
 
@@ -61,7 +61,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User updateUser(User user) {
-        String sql = "update users set email = ?, login = ?, name = ?, birthday = ? where user_id = ?;";
+        String sql = "update users set email = ?, login = ?, name = ?, birthday = ? where user_id = ?";
         if (jdbcTemplate.update(sql, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(), user.getId()) > 0) {
             return user;
         }

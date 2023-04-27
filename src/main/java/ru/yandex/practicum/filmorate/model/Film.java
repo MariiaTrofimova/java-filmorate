@@ -28,8 +28,9 @@ public class Film {
     @PositiveOrZero(message = "Продолжительность фильма отрицательная")
     private int duration;
     private Mpa mpa;
-    private final Set<Genre> genres = new HashSet<>(); //список жанров
-    private final Set<Long> likes = new HashSet<>(); //id друзей, поставивших лайки
+    private final Set<Genre> genres = new HashSet<>();
+    private final Set<Long> likes = new HashSet<>(); //id пользователей, поставивших лайки
+    //я бы оставила как параметр фильма, удалила лишние dao и модели, являющиеся не сущностями, а связями
 
     public void addLike(long id) {
         likes.add(id);

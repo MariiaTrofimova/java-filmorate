@@ -3,10 +3,7 @@ package ru.yandex.practicum.filmorate.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dao.FilmGenreDao;
 import ru.yandex.practicum.filmorate.dao.GenreDao;
-import ru.yandex.practicum.filmorate.dao.LikeDao;
-import ru.yandex.practicum.filmorate.dao.MpaDao;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
@@ -18,30 +15,22 @@ import java.util.stream.Collectors;
 @Service("DbFilmService")
 public class DbFilmService implements FilmService {
     private final FilmStorage storage;
-    private final LikeDao likeDao;
     private final GenreDao genreDao;
-    private final MpaDao mpaDao;
-    private final FilmGenreDao filmGenreDao;
     private final UserService userService;
 
     @Autowired
     public DbFilmService(@Qualifier("FilmDbStorage") FilmStorage storage,
-                         LikeDao likeDao, GenreDao genreDao, MpaDao mpaDao, FilmGenreDao filmGenreDao,
+                         GenreDao genreDao,
                          @Qualifier("DbUserService") UserService userService) {
         this.storage = storage;
-        this.likeDao = likeDao;
         this.genreDao = genreDao;
-        this.mpaDao = mpaDao;
-        this.filmGenreDao = filmGenreDao;
         this.userService = userService;
     }
 
     @Override
     public List<Film> listFilms() {
         return storage.listFilms().stream()
-                .peek(film -> film.setMpa(mpaDao.findMpaById(film.getMpa().getId())))
-                .peek(film -> filmGenreDao.getGenresByFilm(film.getId()).stream()
-                        .map(genreDao::findGenreById)
+                .peek(film -> genreDao.getGenresByFilm(film.getId())
                         .forEach(film::addGenre))
                 .collect(Collectors.toList());
     }
@@ -49,34 +38,25 @@ public class DbFilmService implements FilmService {
     @Override
     public Film findFilmById(long id) {
         Film film = storage.findFilmById(id);
-        film.setMpa(mpaDao.findMpaById(film.getMpa().getId()));
-        filmGenreDao.getGenresByFilm(film.getId()).stream()
-                .map(genreDao::findGenreById)
+        genreDao.getGenresByFilm(film.getId())
                 .forEach(film::addGenre);
         return film;
     }
 
     @Override
     public Film addFilm(Film film) {
-        Film filmWithId = storage.addFilm(film);
-        film.getGenres().forEach(genre -> filmGenreDao.addGenreToFilm(filmWithId.getId(), genre.getId()));
-        return filmWithId;
+        return storage.addFilm(film);
     }
 
     @Override
     public Film updateFilm(Film film) {
-        Film filmUpdated = storage.updateFilm(film);
-        filmGenreDao.clearGenresFromFilm(film.getId());
-        film.getGenres().forEach(genre -> filmGenreDao.addGenreToFilm(film.getId(), genre.getId()));
-        return filmUpdated;
+        return storage.updateFilm(film);
     }
 
     @Override
     public List<Film> listTopFilms(Integer count) {
         return storage.listTopFilms(count).stream()
-                .peek(film -> film.setMpa(mpaDao.findMpaById(film.getMpa().getId())))
-                .peek(film -> filmGenreDao.getGenresByFilm(film.getId()).stream()
-                        .map(genreDao::findGenreById)
+                .peek(film -> genreDao.getGenresByFilm(film.getId())
                         .forEach(film::addGenre))
                 .collect(Collectors.toList());
     }
@@ -85,15 +65,15 @@ public class DbFilmService implements FilmService {
     public List<Long> addLike(long filmId, long userId) {
         findFilmById(filmId);
         userService.findUserById(userId);
-        likeDao.addLike(filmId, userId);
-        return likeDao.getLikesByFilm(filmId);
+        storage.addLike(filmId, userId);
+        return storage.getLikesByFilm(filmId);
     }
 
     @Override
     public List<Long> deleteLike(long filmId, long userId) {
         findFilmById(filmId);
         userService.findUserById(userId);
-        likeDao.deleteLike(filmId, userId);
-        return likeDao.getLikesByFilm(filmId);
+        storage.deleteLike(filmId, userId);
+        return storage.getLikesByFilm(filmId);
     }
 }

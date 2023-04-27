@@ -23,7 +23,7 @@ public class GenreDaoImpl implements GenreDao {
 
     @Override
     public List<Genre> getGenres() {
-        String sql = "select * from genre;";
+        String sql = "select * from genre order by genre_id";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToGenre(rs));
     }
 
@@ -36,6 +36,15 @@ public class GenreDaoImpl implements GenreDao {
             log.warn("Жанр с id {} не найден", id);
             throw new NotFoundException(String.format("Жанр с id %d не найден", id));
         }
+    }
+
+    @Override
+    public List<Genre> getGenresByFilm(long id) {
+        String sql = "select g.* from film_genre as fg " +
+                "join genre as g on fg.genre_id = g.genre_id " +
+                "where fg.film_id =? " +
+                "order by g.genre_id";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToGenre(rs), id);
     }
 
     private Genre mapRowToGenre(ResultSet rs) throws SQLException {

@@ -23,7 +23,7 @@ public class MpaDaoImpl implements MpaDao {
 
     @Override
     public List<Mpa> getMpas() {
-        String sql = "select * from mpa;";
+        String sql = "select * from mpa";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToMpa(rs));
     }
 

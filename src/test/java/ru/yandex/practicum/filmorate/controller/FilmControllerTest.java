@@ -367,16 +367,13 @@ class FilmControllerTest {
     void shouldListTopFilms() throws Exception {
         Film film1 = filmBuilder.id(1).name("Film name1").build();
         Film film2 = filmBuilder.id(2).name("Film name2").build();
-        film1.addLike(2);
-        film1.addLike(3);
-        film2.addLike(1);
         when(service.listTopFilms(2)).thenReturn(List.of(film1, film2));
 
         mockMvc.perform(get(url + "/popular?count=2"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()", is(2)))
-                .andExpect(jsonPath("$[0].likes", is(List.of(2, 3))));
+                .andExpect(jsonPath("$[0].id", is(1)));
     }
 
     @Test

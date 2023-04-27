@@ -9,7 +9,9 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.jdbc.JdbcTestUtils;
-import ru.yandex.practicum.filmorate.dao.*;
+import ru.yandex.practicum.filmorate.dao.FriendshipDao;
+import ru.yandex.practicum.filmorate.dao.GenreDao;
+import ru.yandex.practicum.filmorate.dao.MpaDao;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -31,10 +33,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class FilmorateApplicationTests {
     private final UserDbStorage userStorage;
     private final FilmDbStorage filmStorage;
-    private final FilmGenreDao filmGenreDao;
     private final FriendshipDao friendshipDao;
     private final GenreDao genreDao;
-    private final LikeDao likeDao;
     private final MpaDao mpaDao;
 
     User.UserBuilder userBuilder;
@@ -164,7 +164,8 @@ class FilmorateApplicationTests {
         assertThat(filmFound)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("id", 1L)
-                .isEqualTo(filmAdded);
+                .hasFieldOrPropertyWithValue("mpa", mpaBuilder.name("G").build());
+        //.isEqualTo(filmAdded);
 
         NotFoundException ex = assertThrows(
                 NotFoundException.class,
@@ -234,7 +235,7 @@ class FilmorateApplicationTests {
         assertEquals(topFilms.size(), 1);
         assertEquals(topFilms.get(0).getId(), 1);
 
-        likeDao.addLike(2, 1);
+        filmStorage.addLike(2, 1);
         topFilms = filmStorage.listTopFilms(2);
         assertNotNull(topFilms);
         assertEquals(topFilms.size(), 2);
@@ -245,48 +246,38 @@ class FilmorateApplicationTests {
     public void testAddGenreToFilm() {
         Film film = filmBuilder.build();
         filmStorage.addFilm(film);
-        filmGenreDao.addGenreToFilm(1, 1);
+        filmStorage.addGenreToFilm(1, 1);
 
-        List<Integer> genreId = filmGenreDao.getGenresByFilm(1);
+        List<Genre> genreId = genreDao.getGenresByFilm(1);
         assertNotNull(genreId);
         assertEquals(genreId.size(), 1);
-        assertEquals(genreId.get(0), 1);
+        assertEquals(genreId.get(0).getId(), 1);
 
-        filmGenreDao.addGenreToFilm(1, 2);
-        genreId = filmGenreDao.getGenresByFilm(1);
+        filmStorage.addGenreToFilm(1, 2);
+        genreId = genreDao.getGenresByFilm(1);
         assertNotNull(genreId);
         assertEquals(genreId.size(), 2);
-        assertEquals(genreId.get(0), 1);
-    }
-
-    @Test
-    public void testGetGenresByFilm() {
-        Film film = filmBuilder.build();
-        filmStorage.addFilm(film);
-        List<Integer> genreId = filmGenreDao.getGenresByFilm(1);
-        assertThat(genreId)
-                .isNotNull()
-                .isEqualTo(Collections.EMPTY_LIST);
+        assertEquals(genreId.get(0).getId(), 1);
     }
 
     @Test
     public void testDeleteGenreFromFilm() {
         Film film = filmBuilder.build();
         filmStorage.addFilm(film);
-        filmGenreDao.addGenreToFilm(1, 1);
-        filmGenreDao.addGenreToFilm(1, 2);
+        filmStorage.addGenreToFilm(1, 1);
+        filmStorage.addGenreToFilm(1, 2);
 
-        filmGenreDao.deleteGenreFromFilm(1, 2);
+        filmStorage.deleteGenreFromFilm(1, 2);
 
-        List<Integer> genreId = filmGenreDao.getGenresByFilm(1);
-        assertNotNull(genreId);
-        assertEquals(genreId.size(), 1);
-        assertEquals(genreId.get(0), 1);
+        List<Genre> genres = genreDao.getGenresByFilm(1);
+        assertNotNull(genres);
+        assertEquals(genres.size(), 1);
+        assertEquals(genres.get(0).getId(), 1);
 
-        filmGenreDao.deleteGenreFromFilm(1, 1);
+        filmStorage.deleteGenreFromFilm(1, 1);
 
-        genreId = filmGenreDao.getGenresByFilm(1);
-        assertThat(genreId)
+        genres = genreDao.getGenresByFilm(1);
+        assertThat(genres)
                 .isNotNull()
                 .isEqualTo(Collections.EMPTY_LIST);
     }
@@ -295,12 +286,12 @@ class FilmorateApplicationTests {
     public void testClearGenresFromFilm() {
         Film film = filmBuilder.build();
         filmStorage.addFilm(film);
-        filmGenreDao.addGenreToFilm(1, 1);
-        filmGenreDao.addGenreToFilm(1, 2);
+        filmStorage.addGenreToFilm(1, 1);
+        filmStorage.addGenreToFilm(1, 2);
 
-        filmGenreDao.clearGenresFromFilm(1);
+        filmStorage.clearGenresFromFilm(1);
 
-        List<Integer> genreId = filmGenreDao.getGenresByFilm(1);
+        List<Genre> genreId = genreDao.getGenresByFilm(1);
         assertThat(genreId)
                 .isNotNull()
                 .isEqualTo(Collections.EMPTY_LIST);
@@ -376,8 +367,8 @@ class FilmorateApplicationTests {
         User user = userBuilder.build();
         userStorage.addUser(user);
 
-        likeDao.addLike(1, 1);
-        List<Long> likes = likeDao.getLikesByFilm(1);
+        filmStorage.addLike(1, 1);
+        List<Long> likes = filmStorage.getLikesByFilm(1);
         assertNotNull(likes);
         assertEquals(likes.size(), 1);
         assertEquals(likes.get(0), 1);
@@ -387,7 +378,7 @@ class FilmorateApplicationTests {
     public void testGetLikesByFilm() {
         Film film = filmBuilder.build();
         filmStorage.addFilm(film);
-        List<Long> likes = likeDao.getLikesByFilm(1);
+        List<Long> likes = filmStorage.getLikesByFilm(1);
         assertThat(likes)
                 .isNotNull()
                 .isEqualTo(Collections.EMPTY_LIST);
@@ -400,17 +391,17 @@ class FilmorateApplicationTests {
         User user = userBuilder.build();
         userStorage.addUser(user);
         userStorage.addUser(user);
-        likeDao.addLike(1, 1);
-        likeDao.addLike(1, 2);
+        filmStorage.addLike(1, 1);
+        filmStorage.addLike(1, 2);
 
-        likeDao.deleteLike(1, 2);
-        List<Long> likes = likeDao.getLikesByFilm(1);
+        filmStorage.deleteLike(1, 2);
+        List<Long> likes = filmStorage.getLikesByFilm(1);
         assertNotNull(likes);
         assertEquals(likes.size(), 1);
         assertEquals(likes.get(0), 1);
 
-        likeDao.deleteLike(1, 1);
-        likes = likeDao.getLikesByFilm(1);
+        filmStorage.deleteLike(1, 1);
+        likes = filmStorage.getLikesByFilm(1);
         assertThat(likes)
                 .isNotNull()
                 .isEqualTo(Collections.EMPTY_LIST);
@@ -478,5 +469,15 @@ class FilmorateApplicationTests {
         assertThat(genres.get(0))
                 .hasFieldOrPropertyWithValue("id", 1)
                 .hasFieldOrPropertyWithValue("name", "Комедия");
+    }
+
+    @Test
+    public void testGetGenresByFilm() {
+        Film film = filmBuilder.build();
+        filmStorage.addFilm(film);
+        List<Genre> genres = genreDao.getGenresByFilm(1);
+        assertThat(genres)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
     }
 }

@@ -1,7 +1,6 @@
 --схема будет создаваться заново при каждом запуске приложения: создание таблиц
 --избежать ошибок, связанных с многократным применением скрипта к БД — IF NOT EXISTS при создании таблиц и индексов.
-drop table IF EXISTS USERS CASCADE;
-create table USERS
+create table IF NOT EXISTS USERS
 (
     USER_ID  INTEGER auto_increment
         primary key,
@@ -11,8 +10,7 @@ create table USERS
     BIRTHDAY DATE                   not null
 );
 
-drop table IF EXISTS FRIENDSHIP;
-create table FRIENDSHIP
+create table IF NOT EXISTS FRIENDSHIP
 (
     USER_ID   INTEGER not null
         references USERS (USER_ID) ON DELETE CASCADE,
@@ -22,25 +20,22 @@ create table FRIENDSHIP
     primary key (USER_ID, FRIEND_ID)
 );
 
-drop table IF EXISTS MPA CASCADE;
-create table MPA
+create table IF NOT EXISTS MPA
 (
     MPA_ID      INTEGER auto_increment
         primary key,
-    NAME        CHARACTER VARYING(5) not null,
+    NAME        CHARACTER VARYING(50) not null UNIQUE,
     DESCRIPTION CHARACTER VARYING(100)
 );
 
-drop table IF EXISTS GENRE CASCADE;
-create table GENRE
+create table IF NOT EXISTS GENRE
 (
     GENRE_ID INTEGER auto_increment
         primary key,
-    NAME     CHARACTER VARYING(50)
+    NAME     CHARACTER VARYING(50) UNIQUE
 );
 
-drop table IF EXISTS FILMS CASCADE;
-create table FILMS
+create table IF NOT EXISTS FILMS
 (
     FILM_ID      INTEGER auto_increment
         primary key,
@@ -52,8 +47,7 @@ create table FILMS
         references MPA (MPA_ID) ON DELETE RESTRICT
 );
 
-drop table IF EXISTS FILM_GENRE;
-create table FILM_GENRE
+create table IF NOT EXISTS FILM_GENRE
 (
     FILM_ID  INTEGER not null
         references FILMS ON DELETE CASCADE,

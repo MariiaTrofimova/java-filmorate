@@ -30,13 +30,13 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> listFilms() {
-        String sql = "select * from films";
+        String sql = "select f.*, m.name as mpa_name from films as f join mpa as m on f.mpa_id = m.mpa_id";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs));
     }
 
     @Override
     public Film findFilmById(long id) {
-        String sql = "select * from films where film_id = ?";
+        String sql = "select f.*, m.name as mpa_name from films as f join mpa as m on f.mpa_id = m.mpa_id where f.film_id = ?";
         try {
             return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRowToFilm(rs), id);
         } catch (DataRetrievalFailureException e) {
@@ -53,6 +53,7 @@ public class FilmDbStorage implements FilmStorage {
                 .usingGeneratedKeyColumns("film_id");
         long id = simpleJdbcInsert.executeAndReturnKey(film.toMap()).longValue();
         film.setId(id);
+        film.getGenres().forEach(genre -> addGenreToFilm(id, genre.getId()));
         log.debug("Фильм {} сохранен", mapper.writeValueAsString(film));
         return film;
     }
@@ -69,7 +70,8 @@ public class FilmDbStorage implements FilmStorage {
                 film.getDuration(),
                 film.getMpa().getId(),
                 film.getId()) > 0) {
-            //film.getGenres().stream().sorted();
+            clearGenresFromFilm(film.getId());
+            film.getGenres().forEach(genre -> addGenreToFilm(film.getId(), genre.getId()));
             return film;
         }
         log.warn("Фильм с id {} не найден", film.getId());
@@ -77,13 +79,52 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public List<Film> listTopFilms(int count) {
-        String sql = "select f.* from films as f " +
+        String sql = "select f.*, m.name as mpa_name from films as f " +
+                "join mpa as m on f.mpa_id = m.mpa_id " +
                 "left join " +
                 "(select film_id, COUNT(user_id) AS likes_qty from likes group by film_id order by likes_qty desc limit ?) " +
                 "as top on f.film_id = top.film_id " +
                 "order by top.likes_qty desc " +
                 "limit ?";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), count, count);
+    }
+
+    @Override
+    public boolean addGenreToFilm(long filmId, int genreId) {
+        String sql = "insert into film_genre(film_id, genre_id) " +
+                "values (?, ?)";
+        return jdbcTemplate.update(sql, filmId, genreId) > 0;
+    }
+
+    @Override
+    public boolean deleteGenreFromFilm(long filmId, int genreId) {
+        String sql = "delete from film_genre where (film_id = ? AND genre_id = ?)";
+        return jdbcTemplate.update(sql, filmId, genreId) > 0;
+    }
+
+    @Override
+    public boolean clearGenresFromFilm(long filmId) {
+        String sql = "delete from film_genre where film_id = ?";
+        return jdbcTemplate.update(sql, filmId) > 0;
+    }
+
+    @Override
+    public List<Long> getLikesByFilm(long filmId) {
+        String sql = "select user_id from likes where film_id =?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getLong("user_id"), filmId);
+    }
+
+    @Override
+    public boolean addLike(long filmId, long userId) {
+        String sql = "insert into likes(film_id, user_id) " +
+                "values (?, ?)";
+        return jdbcTemplate.update(sql, filmId, userId) > 0;
+    }
+
+    @Override
+    public boolean deleteLike(long filmId, long userId) {
+        String sql = "delete from likes where (film_id = ? AND user_id = ?)";
+        return jdbcTemplate.update(sql, filmId, userId) > 0;
     }
 
     private Film mapRowToFilm(ResultSet rs) throws SQLException {
@@ -93,8 +134,11 @@ public class FilmDbStorage implements FilmStorage {
         LocalDate releaseDate = rs.getDate("release_date").toLocalDate();
         int duration = rs.getInt("duration");
         int mpaId = rs.getInt("mpa_id");
+        String mpaName = rs.getString("mpa_name");
+
         Mpa mpa = Mpa.builder()
                 .id(mpaId)
+                .name(mpaName)
                 .build();
         return Film.builder()
                 .id(id)
