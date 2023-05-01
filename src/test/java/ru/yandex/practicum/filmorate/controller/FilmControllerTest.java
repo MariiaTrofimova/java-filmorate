@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -24,14 +26,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(FilmController.class)
-class FilmControllerTest {
 
+@WebMvcTest(FilmController.class)
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
+class FilmControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private FilmService service;
+    @Qualifier("DbFilmService")
+    private final FilmService service;
 
     Film film;
     String url = "/films";
@@ -363,16 +367,13 @@ class FilmControllerTest {
     void shouldListTopFilms() throws Exception {
         Film film1 = filmBuilder.id(1).name("Film name1").build();
         Film film2 = filmBuilder.id(2).name("Film name2").build();
-        film1.addLike(2);
-        film1.addLike(3);
-        film2.addLike(1);
         when(service.listTopFilms(2)).thenReturn(List.of(film1, film2));
 
         mockMvc.perform(get(url + "/popular?count=2"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()", is(2)))
-                .andExpect(jsonPath("$[0].likes", is(List.of(2, 3))));
+                .andExpect(jsonPath("$[0].id", is(1)));
     }
 
     @Test

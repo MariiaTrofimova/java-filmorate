@@ -1,9 +1,15 @@
 # ER-диаграмма filmorate
 
-<img src = "https://github.com/MariiaTrofimova/filmorate-ER/blob/303445c5d288278efc6922e1e4eba9bf581cde8d/src/resource/filmorateER.svg" width="720" height = "520">
+<img alt = "ER-диаграмма" src = "src/main/resources/static/filmorateER.svg" width="675" height = "510">
 
-[Ссылка на диаграмму](https://github.com/MariiaTrofimova/filmorate-ER/blob/303445c5d288278efc6922e1e4eba9bf581cde8d/src/resource/filmorateER.svg)\
+[Ссылка на диаграмму](src/main/resources/static/filmorateER.svg)\
 [Ссылка на диаграмму в редакторе диаграмм](https://app.quickdatabasediagrams.com/#/d/avNQfe)
+
+#### Комментарии от проверявшего промежуточное ТЗ напарника:
+**Freddycs14**\
+Отличная работа! Молодец*\
+[Ссылка на pull-реквест промежуточного ТЗ](https://github.com/MariiaTrofimova/java-filmorate/pull/6)\
+<sub>*После этого немного корректировала, исходя из ТЗ11</sub>
 
 ## Примеры запросов
 
@@ -21,11 +27,11 @@ FROM films;
 ```
 SELECT *
 FROM films
-WHERE film_id = 1;
+WHERE film_id = ?;
 ```
 
-#### Запрос топ-10 фильмов
-
+#### Запрос топ-? фильмов
+##### Вывод в порядке id
 ```
 SELECT *
 FROM films
@@ -34,9 +40,22 @@ WHERE film_id IN
      FROM likes
      GROUP BY film_id
      ORDER BY COUNT(user_id) DESC
-     LIMIT 10);
+     LIMIT ?);
 ```
-
+##### Вывод в порядке убывания лайков (0 лайков тоже учитываются)
+```
+SELECT f.*
+FROM films AS f
+LEFT JOIN
+  (SELECT film_id,
+          COUNT(user_id) AS likes_qty
+   FROM likes
+   GROUP BY film_id
+   ORDER BY likes_qty DESC
+   LIMIT ?) AS top ON f.film_id = top.film_id
+ORDER BY top.likes_qty DESC
+LIMIT ?;
+```
 ### User
 
 #### Запрос списка пользователей
@@ -51,10 +70,10 @@ FROM users;
 ```
 SELECT *
 FROM users
-WHERE user_id = 1;
+WHERE user_id = ?;
 ```
 
-#### Запрос списка друзей для пользователя с id 1
+#### Запрос списка друзей для пользователя с id ?
 
 ```
 SELECT *
@@ -62,10 +81,11 @@ FROM users
 WHERE user_id IN
     (SELECT friend_id
      FROM friendship
-     WHERE user_id = 1
+     WHERE user_id = ?
+       AND status = true
      UNION SELECT user_id
      FROM friendship
-     WHERE friend_id = 1);
+     WHERE friend_id = ?);
 ```
 
 #### Запрос общих друзей для пользователей с id 1 и 2
@@ -73,21 +93,21 @@ WHERE user_id IN
 ```
 SELECT *
 FROM users
-WHERE user_id IN
-    (SELECT friend_id
-     FROM friendship
-     WHERE (user_id = 1
-            OR user_id = 2)
-       AND status = '1'
-       AND friend_id NOT IN (1,
-                             2)
-     UNION SELECT user_id
-     FROM friendship
-     WHERE (friend_id = 1
-            OR friend_id = 2)
-       AND status = '1'
-       AND user_id NOT IN (1,
-                           2));
+WHERE user_id IN (
+                    (SELECT friend_id
+                     FROM friendship
+                     WHERE user_id = 1
+                       AND status = true
+                     UNION SELECT user_id
+                     FROM friendship
+                     WHERE friend_id = 1) INTERSECT
+                    (SELECT friend_id
+                     FROM friendship
+                     WHERE user_id = 2
+                       AND status = true
+                     UNION SELECT user_id
+                     FROM friendship
+                     WHERE friend_id = 2));
 ```
 
 ## Описание БД
@@ -113,21 +133,21 @@ WHERE user_id IN
 * description — описание фильма;
 * release_date — дата выхода;
 * duration — длительность фильма;
-* rating_id — идентификатор возрастного рейтинга
+* mpa_id — идентификатор возрастного рейтинга, внешний ключ, отсылает к таблице mpa
 
-#### rating
+#### mpa
 
 Содержит информацию о возрастном рейтинге MPAA\
 **Поля:**
 
-* первичный ключ rating_id
-* name — значение рейтинга:
-* description — подробное описание, например:
-    - G — у фильма нет возрастных ограничений,
-    - PG — детям рекомендуется смотреть фильм с родителями,
-    - PG-13 — детям до 13 лет просмотр не желателен,
-    - R — лицам до 17 лет просматривать фильм можно только в присутствии взрослого,
-    - NC-17 — лицам до 18 лет просмотр запрещён.
+* первичный ключ mpa_id
+* name — значение рейтинга: G, PG, PG-13, R, NC-17
+* description — подробное описание:
+  - G — у фильма нет возрастных ограничений,
+  - PG — детям рекомендуется смотреть фильм с родителями,
+  - PG-13 — детям до 13 лет просмотр не желателен,
+  - R — лицам до 17 лет просматривать фильм можно только в присутствии взрослого,
+  - NC-17 — лицам до 18 лет просмотр запрещён.
 
 #### genre
 
@@ -135,13 +155,13 @@ WHERE user_id IN
 **Поля:**
 
 * первичный ключ genre_id — идентификатор жанра;
-* name — название жанра, например:
-    - Комедия.
-    - Драма.
-    - Мультфильм.
-    - Триллер.
-    - Документальный.
-    - Боевик.
+* name — название жанра:
+  - Комедия.
+  - Драма.
+  - Мультфильм.
+  - Триллер.
+  - Документальный.
+  - Боевик.
 
 #### film_genre
 
@@ -149,7 +169,8 @@ WHERE user_id IN
 **Поля:**
 
 * внешний ключ film_id (отсылает к таблице films) — идентификатор фильма;
-* внешний ключ category_id (отсылает к таблице genre) — идентификатор жанра;
+* внешний ключ genre_id (отсылает к таблице genre) — идентификатор жанра;
+* первичный ключ: составной из двух id
 
 #### likes
 
@@ -158,6 +179,7 @@ WHERE user_id IN
 
 * внешний ключ film_id (отсылает к таблице films) — идентификатор фильма;
 * внешний ключ user_id (отсылает к таблице users) — id пользователя, поставившего лайк;
+* первичный ключ: составной из двух id
 
 #### friendship
 
@@ -167,5 +189,6 @@ WHERE user_id IN
 
 * внешний ключ user_id (отсылает к таблице users) — идентификатор пользователя;
 * внешний ключ friend_id (отсылает к таблице users) — идентификатор друга;
-* status — статус дружбы, например: \
-  ‘0’ — неподтвержденная, ‘1’ — подтвержденная
+* status — статус дружбы: \
+  false — неподтвержденная, true — подтвержденная
+* первичный ключ: составной из двух id

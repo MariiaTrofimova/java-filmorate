@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
@@ -18,7 +19,7 @@ public class UserController {
     private final UserService service;
 
     @Autowired
-    public UserController(UserService service) {
+    public UserController(@Qualifier("DbUserService") UserService service) {
         this.service = service;
     }
 
