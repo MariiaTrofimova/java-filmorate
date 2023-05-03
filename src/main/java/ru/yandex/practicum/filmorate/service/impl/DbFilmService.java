@@ -5,11 +5,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.GenreDao;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service("DbFilmService")
@@ -29,10 +30,14 @@ public class DbFilmService implements FilmService {
 
     @Override
     public List<Film> listFilms() {
-        return storage.listFilms().stream()
-                .peek(film -> genreDao.getGenresByFilm(film.getId())
-                        .forEach(film::addGenre))
-                .collect(Collectors.toList());
+        List<Film> films = storage.listFilms();
+        return getFilmsWithGenres(films);
+    }
+
+    @Override
+    public List<Film> listTopFilms(Integer count) {
+        List<Film> topFilms = storage.listTopFilms(count);
+        return getFilmsWithGenres(topFilms);
     }
 
     @Override
@@ -54,14 +59,6 @@ public class DbFilmService implements FilmService {
     }
 
     @Override
-    public List<Film> listTopFilms(Integer count) {
-        return storage.listTopFilms(count).stream()
-                .peek(film -> genreDao.getGenresByFilm(film.getId())
-                        .forEach(film::addGenre))
-                .collect(Collectors.toList());
-    }
-
-    @Override
     public List<Long> addLike(long filmId, long userId) {
         findFilmById(filmId);
         userService.findUserById(userId);
@@ -75,5 +72,15 @@ public class DbFilmService implements FilmService {
         userService.findUserById(userId);
         storage.deleteLike(filmId, userId);
         return storage.getLikesByFilm(filmId);
+    }
+
+    private List<Film> getFilmsWithGenres(List<Film> films) {
+        List<Long> filmIds = films.stream()
+                .map(Film::getId).collect(Collectors.toList());
+        Map<Long, Set<Genre>> genresByFilmList = genreDao.getGenresByFilmList(filmIds);
+        return films.stream()
+                .peek(film -> genresByFilmList.getOrDefault(film.getId(), new HashSet<>())
+                        .forEach(film::addGenre))
+                .collect(Collectors.toList());
     }
 }
