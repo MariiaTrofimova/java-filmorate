@@ -17,12 +17,12 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.storage.impl.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.impl.UserDbStorage;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,6 +36,8 @@ class FilmorateApplicationTests {
     private final FriendshipDao friendshipDao;
     private final GenreDao genreDao;
     private final MpaDao mpaDao;
+
+    private final FilmService filmService;
 
     User.UserBuilder userBuilder;
     Film.FilmBuilder filmBuilder;
@@ -479,5 +481,69 @@ class FilmorateApplicationTests {
         assertThat(genres)
                 .isNotNull()
                 .isEqualTo(Collections.EMPTY_LIST);
+    }
+
+    @Test
+    public void testGetGenresByFilmList() {
+        Film film = filmBuilder.build();
+        filmStorage.addFilm(film);
+        List<Long> idList = new ArrayList<>();
+        idList.add(1L);
+        Map<Long, Set<Genre>> genresByFilmList = genreDao.getGenresByFilmList(idList);
+        assertThat(genresByFilmList)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_MAP);
+
+        filmStorage.addFilm(film);
+        filmStorage.addGenreToFilm(1L, 1);
+
+        genresByFilmList = genreDao.getGenresByFilmList(idList);
+        assertNotNull(genresByFilmList);
+        assertEquals(genresByFilmList.get(1L).size(), 1);
+
+        filmStorage.addGenreToFilm(1L, 2);
+        genresByFilmList = genreDao.getGenresByFilmList(idList);
+        assertNotNull(genresByFilmList);
+        assertEquals(genresByFilmList.get(1L).size(), 2);
+
+        filmStorage.addFilm(film);
+        filmStorage.addGenreToFilm(2L, 1);
+        idList.add(2L);
+        genresByFilmList = genreDao.getGenresByFilmList(idList);
+        assertNotNull(genresByFilmList);
+        assertEquals(genresByFilmList.get(2L).size(), 1);
+    }
+
+    @Test
+    public void testServiceGetAllFilms() {
+        Film film = filmBuilder.build();
+
+        List<Film> films = filmService.listFilms();
+        assertThat(films)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
+
+        filmService.addFilm(film);
+        films = filmService.listFilms();
+        assertNotNull(films);
+        assertEquals(films.size(), 1);
+
+        filmStorage.addGenreToFilm(1L, 1);
+        films = filmService.listFilms();
+        assertNotNull(films);
+        assertEquals(films.size(), 1);
+        assertEquals(films.get(0).getGenres().get(0).getName(), "Комедия");
+
+        filmStorage.addGenreToFilm(1L, 2);
+        films = filmService.listFilms();
+        assertNotNull(films);
+        assertEquals(films.size(), 1);
+        assertEquals(films.get(0).getGenres().get(0).getName(), "Комедия");
+
+        filmService.addFilm(film);
+        films = filmService.listFilms();
+        assertNotNull(films);
+        assertEquals(films.size(), 2);
+        assertEquals(films.get(0).getGenres().get(0).getName(), "Комедия");
     }
 }
