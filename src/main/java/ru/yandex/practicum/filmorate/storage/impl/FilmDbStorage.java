@@ -82,7 +82,8 @@ public class FilmDbStorage implements FilmStorage {
         String sql = "select f.*, m.name as mpa_name from films as f " +
                 "join mpa as m on f.mpa_id = m.mpa_id " +
                 "left join " +
-                "(select film_id, COUNT(user_id) AS likes_qty from likes group by film_id order by likes_qty desc limit ?) " +
+                "(select film_id, COUNT(user_id) AS likes_qty " +
+                "from likes group by film_id order by likes_qty desc limit ?) " +
                 "as top on f.film_id = top.film_id " +
                 "order by top.likes_qty desc " +
                 "limit ?";
