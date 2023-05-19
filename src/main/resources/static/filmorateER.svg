@@ -1,5 +1,5 @@
 <svg class="diagram-root" style="background: white" xmlns="http://www.w3.org/2000/svg"
-     xmlns:xlink="http://www.w3.org/1999/xlink">
+>
     <style>.diagram-root { font-family: "Helvetica Neue", sans-serif; font-size: 12px; } .t { overflow: visible; } .t-bg
         { y: 40; fill: white; stroke: #323c46; stroke-width: 2; } .th { fill: white; stroke: #323c46; stroke-width: 2; }
         .tht { fill: #323c46; font-size: 14px; font-weight: bold; } .tf { fill: #323c46; overflow: visible; } .tf.pk {

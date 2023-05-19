@@ -13,17 +13,24 @@ INSERT INTO GENRE (NAME) VALUES ('Документальный');
 INSERT INTO GENRE (NAME) VALUES ('Боевик');*/
 
 
-DELETE FROM USERS;
-DELETE FROM FILMS;
-DELETE FROM FILM_GENRE;
-DELETE FROM FRIENDSHIP;
-DELETE FROM LIKES;
+DELETE
+FROM USERS;
+DELETE
+FROM FILMS;
+DELETE
+FROM FILM_GENRE;
+DELETE
+FROM FRIENDSHIP;
+DELETE
+FROM LIKES;
 
-ALTER TABLE USERS ALTER COLUMN user_id RESTART WITH 1;
-ALTER TABLE FILMS ALTER COLUMN film_id RESTART WITH 1;
+ALTER TABLE USERS
+    ALTER COLUMN user_id RESTART WITH 1;
+ALTER TABLE FILMS
+    ALTER COLUMN film_id RESTART WITH 1;
 
 MERGE INTO MPA
-    KEY(MPA_ID)
+    KEY (MPA_ID)
     VALUES (1, 'G', 'У фильма нет возрастных ограничений'),
            (2, 'PG', 'Детям рекомендуется смотреть фильм с родителями'),
            (3, 'PG-13', 'Детям до 13 лет просмотр не желателен'),
@@ -31,7 +38,7 @@ MERGE INTO MPA
            (5, 'NC-17', 'Лицам до 18 лет просмотр запрещён');
 
 MERGE INTO GENRE
-    KEY(GENRE_ID)
+    KEY (GENRE_ID)
     VALUES (1, 'Комедия'),
            (2, 'Драма'),
            (3, 'Мультфильм'),
