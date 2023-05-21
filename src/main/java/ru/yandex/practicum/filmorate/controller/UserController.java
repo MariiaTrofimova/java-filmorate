@@ -63,5 +63,4 @@ public class UserController {
     public List<Long> deleteFriend(@PathVariable long id, @PathVariable long friendId) {
         return service.deleteFriend(id, friendId);
     }
-
 }

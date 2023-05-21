@@ -21,12 +21,11 @@ import java.util.List;
 @Slf4j
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
+    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
-
-    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 
     @Override
     public List<Film> listFilms() {
@@ -36,7 +35,10 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film findFilmById(long id) {
-        String sql = "select f.*, m.name as mpa_name from films as f join mpa as m on f.mpa_id = m.mpa_id where f.film_id = ?";
+        String sql = "select f.*, m.name as mpa_name " +
+                "from films as f " +
+                "join mpa as m on f.mpa_id = m.mpa_id " +
+                "where f.film_id = ?";
         try {
             return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRowToFilm(rs), id);
         } catch (DataRetrievalFailureException e) {
@@ -54,9 +56,11 @@ public class FilmDbStorage implements FilmStorage {
         long id = simpleJdbcInsert.executeAndReturnKey(film.toMap()).longValue();
         film.setId(id);
         film.getGenres().forEach(genre -> addGenreToFilm(id, genre.getId()));
+        film.getDirectors().forEach(director -> addDirectorToFilm(id, director.getId()));
         log.debug("Фильм {} сохранен", mapper.writeValueAsString(film));
         return film;
     }
+
 
     @Override
     public Film updateFilm(Film film) {
@@ -71,12 +75,15 @@ public class FilmDbStorage implements FilmStorage {
                 film.getMpa().getId(),
                 film.getId()) > 0) {
             clearGenresFromFilm(film.getId());
+            clearDirectorsForFilm(film.getId());
             film.getGenres().forEach(genre -> addGenreToFilm(film.getId(), genre.getId()));
+            film.getDirectors().forEach(director -> addDirectorToFilm(film.getId(), director.getId()));
             return film;
         }
         log.warn("Фильм с id {} не найден", film.getId());
         throw new NotFoundException(String.format("Фильм с id %d не найден", film.getId()));
     }
+
 
     public List<Film> listTopFilms(int count) {
         String sql = "select f.*, m.name as mpa_name from films as f " +
@@ -130,6 +137,19 @@ public class FilmDbStorage implements FilmStorage {
                 "where (extract(year from release_date) = ?)" +
                 "order by top.likes_qty desc ";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), year);
+    }
+
+    @Override
+    public void clearDirectorsForFilm(long filmId) {
+        String sql = "delete from film_director where film_id = ?";
+        jdbcTemplate.update(sql, filmId);
+    }
+
+    @Override
+    public void addDirectorToFilm(long filmId, long directorId) {
+        String sql = "insert into film_director(film_id, director_id) " +
+                "values (?, ?)";
+        jdbcTemplate.update(sql, filmId, directorId);
     }
 
     @Override

@@ -22,4 +22,6 @@ public interface FilmService {
     List<Long> addLike(long filmId, long userId);
 
     List<Long> deleteLike(long filmId, long userId);
+
+    List<Film> listFilmsByDirector(long directorId, Optional<String> sortParam);
 }
