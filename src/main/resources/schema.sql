@@ -89,28 +89,3 @@ create table IF NOT EXISTS FILM_DIRECTOR
         references DIRECTORS ON delete CASCADE,
     primary key (FILM_ID, DIRECTOR_ID)
 );
-
-create TABLE IF NOT EXISTS USER_EVENTS (
-    event_id SERIAL PRIMARY KEY,
-    timestamp TIMESTAMP,
-    user_id INTEGER NOT NULL,
-    event_type VARCHAR,
-    operation VARCHAR,
-    entity_id INTEGER
-);
-
-create table IF NOT EXISTS DIRECTORS
-(
-    DIRECTOR_ID INTEGER auto_increment
-        primary key,
-    NAME        CHARACTER VARYING(250) UNIQUE
-);
-
-create table IF NOT EXISTS FILM_DIRECTOR
-(
-    FILM_ID     INTEGER not null
-        references FILMS ON delete CASCADE,
-    DIRECTOR_ID INTEGER not null
-        references DIRECTORS ON delete CASCADE,
-    primary key (FILM_ID, DIRECTOR_ID)
-);
