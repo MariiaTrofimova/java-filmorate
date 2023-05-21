@@ -15,6 +15,12 @@ public interface FilmStorage {
 
     List<Film> listTopFilms(int count);
 
+    List<Film> listTopFilms();
+
+    List<Film> listTopFilmsByYear(int count, int year);
+
+    List<Film> listTopFilmsByYear(int year);
+
     boolean addGenreToFilm(long filmId, int genreId);
 
     boolean deleteGenreFromFilm(long filmId, int genreId);

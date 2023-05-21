@@ -91,6 +91,48 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    public List<Film> listTopFilms() {
+        String sql = "select f.*, m.name as mpa_name " +
+                "from films as f " +
+                "join mpa as m on f.mpa_id = m.mpa_id " +
+                "left join " +
+                "(select film_id, COUNT(user_id) AS likes_qty " +
+                "from likes group by film_id order by likes_qty desc) " +
+                "as top on f.film_id = top.film_id " +
+                "order by top.likes_qty desc";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs));
+    }
+
+    @Override
+    public List<Film> listTopFilmsByYear(int count, int year) {
+        String sql = "select f.*, m.name as mpa_name " +
+                "from films as f " +
+                "join mpa as m on f.mpa_id = m.mpa_id " +
+                "left join " +
+                "(select film_id, COUNT(user_id) AS likes_qty " +
+                "from likes group by film_id order by likes_qty desc) " +
+                "as top on f.film_id = top.film_id " +
+                "where (extract(year from release_date) = ?)" +
+                "order by top.likes_qty desc " +
+                "limit ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), year, count);
+    }
+
+    @Override
+    public List<Film> listTopFilmsByYear(int year) {
+        String sql = "select f.*, m.name as mpa_name " +
+                "from films as f " +
+                "join mpa as m on f.mpa_id = m.mpa_id " +
+                "left join " +
+                "(select film_id, COUNT(user_id) AS likes_qty " +
+                "from likes group by film_id order by likes_qty desc) " +
+                "as top on f.film_id = top.film_id " +
+                "where (extract(year from release_date) = ?)" +
+                "order by top.likes_qty desc ";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), year);
+    }
+
+    @Override
     public boolean addGenreToFilm(long filmId, int genreId) {
         String sql = "insert into film_genre(film_id, genre_id) " +
                 "values (?, ?)";
