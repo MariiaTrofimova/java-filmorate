@@ -17,10 +17,7 @@ import java.util.stream.Collectors;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Film {
-    private final Set<Genre> genres = new HashSet<>();
-    private final Set<Director> directors = new HashSet<>();
-    private final Set<Long> likes = new HashSet<>();
-    private long id;
+   private long id;
     @NotBlank(message = "Отсутствует название")
     private String name;
     @Size(min = 1, max = 200, message = "Длина описания должна быть от 1 до 200 символов")
@@ -31,7 +28,10 @@ public class Film {
     @PositiveOrZero(message = "Продолжительность фильма отрицательная")
     private int duration;
     private Mpa mpa;
-
+    private final Set<Genre> genres = new HashSet<>();
+    private final Set<Director> directors = new HashSet<>();
+    private final Set<Long> likes = new HashSet<>(); //id пользователей, поставивших лайки
+    
     public void addLike(long id) {
         likes.add(id);
     }
