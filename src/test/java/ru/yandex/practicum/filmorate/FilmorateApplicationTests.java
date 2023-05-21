@@ -620,7 +620,7 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    public void testAddDirectorToFilm(){
+    public void testAddDirectorToFilm() {
         Film film = filmBuilder.build();
         Film filmAdded = filmStorage.addFilm(film);
 
@@ -642,7 +642,7 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    public void testDeleteDirectorToFilm(){
+    public void testDeleteDirectorToFilm() {
         Film film = filmBuilder.build();
         Film filmAdded = filmStorage.addFilm(film);
 
