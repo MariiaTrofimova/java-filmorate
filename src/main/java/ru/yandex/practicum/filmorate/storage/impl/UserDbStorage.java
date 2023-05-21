@@ -87,11 +87,11 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public boolean processEvent(Event event) {
-        String sql = "INSERT INTO user_events (timestamp, user_id, event_type, operation, entity_id) " +
+        String sqlEven = "INSERT INTO user_events (timestamp, user_id, event_type, operation, entity_id) " +
                 "VALUES (?, ?, ?, ?, ?)";
         try {
             int rowsAffected = jdbcTemplate.update(
-                    sql,
+                    sqlEven,
                     event.getTimestamp(),
                     event.getUserId(),
                     event.getEventType().name(),

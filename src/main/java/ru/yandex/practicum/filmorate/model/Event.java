@@ -18,14 +18,10 @@ public class Event {
     private long entityId;
 
     public enum EventType {
-        LIKE,
-        REVIEW,
-        FRIEND
+        LIKE, REVIEW, FRIEND
     }
 
     public enum Operation {
-        ADD,
-        REMOVE,
-        UPDATE
+        ADD, REMOVE, UPDATE
     }
 }
