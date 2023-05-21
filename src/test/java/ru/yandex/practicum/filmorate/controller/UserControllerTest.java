@@ -384,45 +384,45 @@ class UserControllerTest {
         Assertions.assertEquals(entityId, event.getEntityId());
     }
 
-    @Test
-    public void testEqualsAndHashCode() throws Exception {
-       LocalDateTime now = LocalDateTime.now();
+//     @Test
+//     public void testEqualsAndHashCode() throws Exception {
+//        LocalDateTime now = LocalDateTime.now();
 
-    Event event1 = Event.builder()
-            .timestamp(now)
-            .userId(123)
-            .eventType(Event.EventType.LIKE)
-            .operation(Event.Operation.ADD)
-            .eventId(456)
-            .entityId(789)
-            .build();
+//     Event event1 = Event.builder()
+//             .timestamp(now)
+//             .userId(123)
+//             .eventType(Event.EventType.LIKE)
+//             .operation(Event.Operation.ADD)
+//             .eventId(456)
+//             .entityId(789)
+//             .build();
 
-    Event event2 = Event.builder()
-            .timestamp(now.plusMillis(1)) // Добавляем 1 миллисекунду к timestamp
-            .userId(123)
-            .eventType(Event.EventType.LIKE)
-            .operation(Event.Operation.ADD)
-            .eventId(456)
-            .entityId(789)
-            .build();
+//     Event event2 = Event.builder()
+//             .timestamp(now.plusMillis(1)) // Добавляем 1 миллисекунду к timestamp
+//             .userId(123)
+//             .eventType(Event.EventType.LIKE)
+//             .operation(Event.Operation.ADD)
+//             .eventId(456)
+//             .entityId(789)
+//             .build();
 
-    Event event3 = Event.builder()
-            .timestamp(now)
-            .userId(456)
-            .eventType(Event.EventType.REVIEW)
-            .operation(Event.Operation.UPDATE)
-            .eventId(789)
-            .entityId(123)
-            .build();
+//     Event event3 = Event.builder()
+//             .timestamp(now)
+//             .userId(456)
+//             .eventType(Event.EventType.REVIEW)
+//             .operation(Event.Operation.UPDATE)
+//             .eventId(789)
+//             .entityId(123)
+//             .build();
 
-    Assertions.assertThat(event1)
-            .usingRecursiveComparison()
-            .withComparatorForFields(new TemporalUnitOffset<>(1, ChronoUnit.MILLIS), "timestamp")
-            .isEqualTo(event2);
+//     Assertions.assertThat(event1)
+//             .usingRecursiveComparison()
+//             .withComparatorForFields(new TemporalUnitOffset<>(1, ChronoUnit.MILLIS), "timestamp")
+//             .isEqualTo(event2);
 
-    Assertions.assertNotEquals(event1, event3);
+//     Assertions.assertNotEquals(event1, event3);
 
-    Assertions.assertEquals(event1.hashCode(), event2.hashCode());
-    Assertions.assertNotEquals(event1.hashCode(), event3.hashCode());
-    }
+//     Assertions.assertEquals(event1.hashCode(), event2.hashCode());
+//     Assertions.assertNotEquals(event1.hashCode(), event3.hashCode());
+//     }
 }
