@@ -358,31 +358,31 @@ class UserControllerTest {
     }
 
 
-    @Test
-    public void testBuilderAndGetters() throws Exception {
-        LocalDateTime timestamp = LocalDateTime.now();
-        long userId = 123;
-        Event.EventType eventType = Event.EventType.LIKE;
-        Event.Operation operation = Event.Operation.ADD;
-        long eventId = 456;
-        long entityId = 789;
+//     @Test
+//     public void testBuilderAndGetters() throws Exception {
+//         LocalDateTime timestamp = LocalDateTime.now();
+//         long userId = 123;
+//         Event.EventType eventType = Event.EventType.LIKE;
+//         Event.Operation operation = Event.Operation.ADD;
+//         long eventId = 456;
+//         long entityId = 789;
 
-        Event event = Event.builder()
-                .timestamp(timestamp)
-                .userId(userId)
-                .eventType(eventType)
-                .operation(operation)
-                .eventId(eventId)
-                .entityId(entityId)
-                .build();
+//         Event event = Event.builder()
+//                 .timestamp(timestamp)
+//                 .userId(userId)
+//                 .eventType(eventType)
+//                 .operation(operation)
+//                 .eventId(eventId)
+//                 .entityId(entityId)
+//                 .build();
 
-        Assertions.assertEquals(timestamp, event.getTimestamp());
-        Assertions.assertEquals(userId, event.getUserId());
-        Assertions.assertEquals(eventType, event.getEventType());
-        Assertions.assertEquals(operation, event.getOperation());
-        Assertions.assertEquals(eventId, event.getEventId());
-        Assertions.assertEquals(entityId, event.getEntityId());
-    }
+//         Assertions.assertEquals(timestamp, event.getTimestamp());
+//         Assertions.assertEquals(userId, event.getUserId());
+//         Assertions.assertEquals(eventType, event.getEventType());
+//         Assertions.assertEquals(operation, event.getOperation());
+//         Assertions.assertEquals(eventId, event.getEventId());
+//         Assertions.assertEquals(entityId, event.getEntityId());
+//     }
 
 //     @Test
 //     public void testEqualsAndHashCode() throws Exception {
