@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Assertions;
+import org.assertj.core.data.TemporalUnitOffset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import ru.yandex.practicum.filmorate.service.UserService;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 
@@ -384,38 +386,43 @@ class UserControllerTest {
 
     @Test
     public void testEqualsAndHashCode() throws Exception{
-        Event event1 = Event.builder()
-                .timestamp(LocalDateTime.now())
-                .userId(123)
-                .eventType(Event.EventType.LIKE)
-                .operation(Event.Operation.ADD)
-                .eventId(456)
-                .entityId(789)
-                .build();
+       LocalDateTime now = LocalDateTime.now();
 
-        Event event2 = Event.builder()
-                .timestamp(LocalDateTime.now())
-                .userId(123)
-                .eventType(Event.EventType.LIKE)
-                .operation(Event.Operation.ADD)
-                .eventId(456)
-                .entityId(789)
-                .build();
+    Event event1 = Event.builder()
+            .timestamp(now)
+            .userId(123)
+            .eventType(Event.EventType.LIKE)
+            .operation(Event.Operation.ADD)
+            .eventId(456)
+            .entityId(789)
+            .build();
 
-        Event event3 = Event.builder()
-                .timestamp(LocalDateTime.now())
-                .userId(456)
-                .eventType(Event.EventType.REVIEW)
-                .operation(Event.Operation.UPDATE)
-                .eventId(789)
-                .entityId(123)
-                .build();
+    Event event2 = Event.builder()
+            .timestamp(now.plusMillis(1)) // Добавляем 1 миллисекунду к timestamp
+            .userId(123)
+            .eventType(Event.EventType.LIKE)
+            .operation(Event.Operation.ADD)
+            .eventId(456)
+            .entityId(789)
+            .build();
 
-        Assertions.assertEquals(event1, event2);
-        Assertions.assertNotEquals(event1, event3);
+    Event event3 = Event.builder()
+            .timestamp(now)
+            .userId(456)
+            .eventType(Event.EventType.REVIEW)
+            .operation(Event.Operation.UPDATE)
+            .eventId(789)
+            .entityId(123)
+            .build();
 
-        Assertions.assertEquals(event1.hashCode(), event2.hashCode());
-        Assertions.assertNotEquals(event1.hashCode(), event3.hashCode());
+    Assertions.assertThat(event1)
+            .usingRecursiveComparison()
+            .withComparatorForFields(new TemporalUnitOffset<>(1, ChronoUnit.MILLIS), "timestamp")
+            .isEqualTo(event2);
+
+    Assertions.assertNotEquals(event1, event3);
+
+    Assertions.assertEquals(event1.hashCode(), event2.hashCode());
+    Assertions.assertNotEquals(event1.hashCode(), event3.hashCode());
     }
-
 }
