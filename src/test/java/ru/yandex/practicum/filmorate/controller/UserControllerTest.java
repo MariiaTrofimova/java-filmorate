@@ -359,7 +359,7 @@ class UserControllerTest {
 
 
     @Test
-    public void testBuilderAndGetters() throws Exception{
+    public void testBuilderAndGetters() throws Exception {
         LocalDateTime timestamp = LocalDateTime.now();
         long userId = 123;
         Event.EventType eventType = Event.EventType.LIKE;
@@ -385,7 +385,7 @@ class UserControllerTest {
     }
 
     @Test
-    public void testEqualsAndHashCode() throws Exception{
+    public void testEqualsAndHashCode() throws Exception {
        LocalDateTime now = LocalDateTime.now();
 
     Event event1 = Event.builder()
