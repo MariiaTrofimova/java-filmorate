@@ -65,7 +65,7 @@ public class UserController {
         return service.deleteFriend(id, friendId);
     }
 
-    @GetMapping("/users/{id}/feed")
+    @GetMapping("/{id}/feed")
     public List<Event> returnEventsFriendsUser(@PathVariable Integer id) {
         return service.findEventsFriendsUser(id);
     }
