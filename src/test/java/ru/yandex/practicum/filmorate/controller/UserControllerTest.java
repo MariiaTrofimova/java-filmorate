@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +12,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -30,20 +33,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class UserControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
     @MockBean
     @Qualifier("DbUserService")
     private final UserService service;
-
     User user;
     String url = "/users";
-
     User.UserBuilder userBuilder;
-
     ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
             .setDateFormat(new SimpleDateFormat("yyyy-MM-dd"));
+    @Autowired
+    private MockMvc mockMvc;
 
     @BeforeEach
     void setupBuilder() {
@@ -355,4 +354,68 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()", is(0)));
     }
+
+
+    @Test
+    public void testBuilderAndGetters() {
+        LocalDateTime timestamp = LocalDateTime.now();
+        long userId = 123;
+        Event.EventType eventType = Event.EventType.LIKE;
+        Event.Operation operation = Event.Operation.ADD;
+        long eventId = 456;
+        long entityId = 789;
+
+        Event event = Event.builder()
+                .timestamp(timestamp)
+                .userId(userId)
+                .eventType(eventType)
+                .operation(operation)
+                .eventId(eventId)
+                .entityId(entityId)
+                .build();
+
+        Assertions.assertEquals(timestamp, event.getTimestamp());
+        Assertions.assertEquals(userId, event.getUserId());
+        Assertions.assertEquals(eventType, event.getEventType());
+        Assertions.assertEquals(operation, event.getOperation());
+        Assertions.assertEquals(eventId, event.getEventId());
+        Assertions.assertEquals(entityId, event.getEntityId());
+    }
+
+    @Test
+    public void testEqualsAndHashCode() {
+        Event event1 = Event.builder()
+                .timestamp(LocalDateTime.now())
+                .userId(123)
+                .eventType(Event.EventType.LIKE)
+                .operation(Event.Operation.ADD)
+                .eventId(456)
+                .entityId(789)
+                .build();
+
+        Event event2 = Event.builder()
+                .timestamp(LocalDateTime.now())
+                .userId(123)
+                .eventType(Event.EventType.LIKE)
+                .operation(Event.Operation.ADD)
+                .eventId(456)
+                .entityId(789)
+                .build();
+
+        Event event3 = Event.builder()
+                .timestamp(LocalDateTime.now())
+                .userId(456)
+                .eventType(Event.EventType.REVIEW)
+                .operation(Event.Operation.UPDATE)
+                .eventId(789)
+                .entityId(123)
+                .build();
+
+        Assertions.assertEquals(event1, event2);
+        Assertions.assertNotEquals(event1, event3);
+
+        Assertions.assertEquals(event1.hashCode(), event2.hashCode());
+        Assertions.assertNotEquals(event1.hashCode(), event3.hashCode());
+    }
+
 }

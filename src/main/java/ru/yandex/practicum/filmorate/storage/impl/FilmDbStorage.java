@@ -21,12 +21,11 @@ import java.util.List;
 @Slf4j
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
+    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
-
-    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 
     @Override
     public List<Film> listFilms() {

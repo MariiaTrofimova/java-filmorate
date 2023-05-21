@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -82,5 +83,25 @@ public class UserDbStorage implements UserStorage {
                 .name(name)
                 .birthday(birthday)
                 .build();
+    }
+
+    @Override
+    public boolean processEvent(Event event) {
+        String sql = "INSERT INTO user_events (timestamp, user_id, event_type, operation, entity_id) " +
+                "VALUES (?, ?, ?, ?, ?)";
+        try {
+            int rowsAffected = jdbcTemplate.update(
+                    sql,
+                    event.getTimestamp(),
+                    event.getUserId(),
+                    event.getEventType().name(),
+                    event.getOperation().name(),
+                    event.getEntityId()
+            );
+            return rowsAffected > 0;
+        } catch (Exception e) {
+            log.error("Не удалось обработать событие: {}", event, e);
+            return false;
+        }
     }
 }
