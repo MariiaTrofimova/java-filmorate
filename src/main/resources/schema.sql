@@ -65,7 +65,7 @@ create table IF NOT EXISTS LIKES
     primary key (FILM_ID, USER_ID)
 );
 
-CREATE TABLE IF NOT EXISTS USER_EVENTS (
+create TABLE IF NOT EXISTS USER_EVENTS (
     event_id SERIAL PRIMARY KEY,
     timestamp TIMESTAMP,
     user_id INTEGER NOT NULL,
@@ -84,9 +84,9 @@ create table IF NOT EXISTS DIRECTORS
 create table IF NOT EXISTS FILM_DIRECTOR
 (
     FILM_ID     INTEGER not null
-        references FILMS ON DELETE CASCADE,
+        references FILMS ON delete CASCADE,
     DIRECTOR_ID INTEGER not null
-        references DIRECTORS ON DELETE CASCADE,
+        references DIRECTORS ON delete CASCADE,
     primary key (FILM_ID, DIRECTOR_ID)
 );
 

@@ -17,6 +17,9 @@ import java.util.stream.Collectors;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Film {
+    private final Set<Genre> genres = new HashSet<>();
+    private final Set<Director> directors = new HashSet<>();
+    private final Set<Long> likes = new HashSet<>();
     private long id;
     @NotBlank(message = "Отсутствует название")
     private String name;
@@ -28,9 +31,6 @@ public class Film {
     @PositiveOrZero(message = "Продолжительность фильма отрицательная")
     private int duration;
     private Mpa mpa;
-    private final Set<Genre> genres = new HashSet<>();
-    private final Set<Director> directors = new HashSet<>();
-    private final Set<Long> likes = new HashSet<>();
 
     public void addLike(long id) {
         likes.add(id);
