@@ -69,5 +69,4 @@ public class UserController {
     public List<Event> returnEventsFriendsUser(@PathVariable Integer id) {
         return service.findEventsFriendsUser(id);
     }
-
 }
