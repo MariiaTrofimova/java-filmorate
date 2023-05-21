@@ -42,6 +42,13 @@ public class FilmController {
         return service.listTopFilms(count, year, genreId);
     }
 
+    @GetMapping("/director/{directorId}")
+    public List<Film> listFilmsByOneDirector(
+            @PathVariable long directorId,
+            @RequestParam Optional<String> sortBy) {
+        return service.listFilmsByDirector(directorId, sortBy);
+    }
+
     @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Film addFilm(@Valid @RequestBody Film film) {

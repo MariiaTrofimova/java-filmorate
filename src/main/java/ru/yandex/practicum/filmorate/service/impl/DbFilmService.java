@@ -36,7 +36,7 @@ public class DbFilmService implements FilmService {
     @Override
     public List<Film> listFilms() {
         List<Film> films = storage.listFilms();
-        return getFilmsWithGenres(films);
+        return getFilmsWithDirectors(getFilmsWithGenres(films));
     }
 
     @Override
@@ -77,6 +77,8 @@ public class DbFilmService implements FilmService {
     @Override
     public Film findFilmById(long id) {
         Film film = storage.findFilmById(id);
+        directorDao.getDirectorsByFilm(film.getId())
+                .forEach(film::addDirector);
         genreDao.getGenresByFilm(film.getId())
                 .forEach(film::addGenre);
         return film;
@@ -106,6 +108,30 @@ public class DbFilmService implements FilmService {
         userService.findUserById(userId);
         storage.deleteLike(filmId, userId);
         return storage.getLikesByFilm(filmId);
+    }
+
+    @Override
+    public List<Film> listFilmsByDirector(long directorId, Optional<String> sortParam) {
+        Director director = directorDao.findDirectorById(directorId);
+        if (sortParam.isPresent()) {
+            if (sortParam.get().equals("year")) {
+                return getFilmsWithDirectors(listFilms())
+                        .stream()
+                        .filter(film -> film.getDirectors().contains(director))
+                        .sorted(Comparator.comparing((Film film) -> film.getReleaseDate().getYear()))
+                        .collect(Collectors.toList());
+            } else if (sortParam.get().equals("likes")) {
+                List<Film> topFilms = getFilmsWithGenres(storage.listTopFilms());
+                return getFilmsWithDirectors(topFilms)
+                        .stream()
+                        .filter(film -> film.getDirectors().contains(director))
+                        .collect(Collectors.toList());
+            }
+        }
+        return getFilmsWithDirectors(listFilms())
+                .stream()
+                .filter(film -> film.getDirectors().contains(director))
+                .collect(Collectors.toList());
     }
 
     private List<Film> getFilmsWithGenres(List<Film> films) {

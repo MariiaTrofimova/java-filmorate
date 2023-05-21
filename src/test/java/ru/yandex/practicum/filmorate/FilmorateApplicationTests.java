@@ -10,11 +10,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.DirectorDao;
 import ru.yandex.practicum.filmorate.storage.FriendshipDao;
 import ru.yandex.practicum.filmorate.storage.GenreDao;
 import ru.yandex.practicum.filmorate.storage.MpaDao;
@@ -36,6 +34,7 @@ class FilmorateApplicationTests {
     private final FriendshipDao friendshipDao;
     private final GenreDao genreDao;
     private final MpaDao mpaDao;
+    private final DirectorDao directorDao;
 
     private final FilmService filmService;
 
@@ -43,6 +42,7 @@ class FilmorateApplicationTests {
     Film.FilmBuilder filmBuilder;
     Genre.GenreBuilder genreBuilder;
     Mpa.MpaBuilder mpaBuilder;
+    Director.DirectorBuilder directorBuilder;
 
     private final LocalDate testReleaseDate = LocalDate.of(2000, 1, 1);
 
@@ -68,14 +68,18 @@ class FilmorateApplicationTests {
                 .releaseDate(testReleaseDate)
                 .duration(90)
                 .mpa(mpaBuilder.build());
+
+        directorBuilder = Director.builder()
+                .name("Director name");
     }
 
     @AfterEach
     public void cleanDb() {
         JdbcTestUtils.deleteFromTables(jdbcTemplate,
-                "users", "films", "friendship", "film_genre", "likes");
+                "users", "films", "friendship", "film_genre", "likes", "directors", "film_director");
         jdbcTemplate.update("ALTER TABLE USERS ALTER COLUMN user_id RESTART WITH 1");
         jdbcTemplate.update("ALTER TABLE FILMS ALTER COLUMN film_id RESTART WITH 1");
+        jdbcTemplate.update("ALTER TABLE DIRECTORS ALTER COLUMN director_id RESTART WITH 1");
     }
 
     @Test
@@ -545,5 +549,119 @@ class FilmorateApplicationTests {
         assertNotNull(films);
         assertEquals(films.size(), 2);
         assertEquals(films.get(0).getGenres().get(0).getName(), "Комедия");
+    }
+
+    @Test
+    public void testAddDirector() {
+        Director director = directorBuilder.build();
+        Director addedDirector = directorDao.addDirector(director);
+        assertThat(addedDirector)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", 1L);
+    }
+
+    @Test
+    public void testFindDirectorById() {
+        Director director = directorBuilder.build();
+        Director addedDirector = directorDao.addDirector(director);
+        Director directorFound = directorDao.findDirectorById(addedDirector.getId());
+        assertThat(directorFound)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", 1L)
+                .isEqualTo(addedDirector);
+
+        NotFoundException ex = assertThrows(
+                NotFoundException.class,
+                () -> directorDao.findDirectorById(-1L)
+        );
+        assertEquals("Режиссёр с id -1 не найден.", ex.getMessage());
+
+        ex = assertThrows(
+                NotFoundException.class,
+                () -> directorDao.findDirectorById(999L)
+        );
+        assertEquals("Режиссёр с id 999 не найден.", ex.getMessage());
+    }
+
+    @Test
+    public void testListDirectors() {
+        List<Director> directors = directorDao.listDirectors();
+        assertThat(directors)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
+
+        Director director = directorBuilder.build();
+        directorDao.addDirector(director);
+        directors = directorDao.listDirectors();
+        assertNotNull(directors);
+        assertEquals(directors.size(), 1);
+        assertEquals(directors.get(0).getId(), 1);
+    }
+
+    @Test
+    public void testUpdateDirector() {
+        Director director = directorBuilder.build();
+        directorDao.addDirector(director);
+        Director directorToUpdate = directorBuilder.id(1L).name("Name Updated").build();
+        Director directorUpdated = directorDao.updateDirector(directorToUpdate);
+        assertThat(directorUpdated)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", 1L)
+                .hasFieldOrPropertyWithValue("name", "Name Updated");
+
+        NotFoundException ex = assertThrows(
+                NotFoundException.class,
+                () -> directorDao.updateDirector(directorBuilder.id(-1L).build())
+        );
+        assertEquals("Режиссёр с id -1 не найден", ex.getMessage());
+
+        ex = assertThrows(
+                NotFoundException.class,
+                () -> directorDao.updateDirector(directorBuilder.id(999L).build())
+        );
+        assertEquals("Режиссёр с id 999 не найден", ex.getMessage());
+    }
+
+    @Test
+    public void testAddDirectorToFilm(){
+        Film film = filmBuilder.build();
+        Film filmAdded = filmStorage.addFilm(film);
+
+        Director director = directorBuilder.build();
+        Director addedDirector = directorDao.addDirector(director);
+
+        filmStorage.addDirectorToFilm(filmAdded.getId(), addedDirector.getId());
+
+        Film filmWithDirector = filmService.findFilmById(filmAdded.getId());
+        Set<Director> directors = new HashSet<>();
+        directors.add(addedDirector);
+
+        assertThat(filmWithDirector)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", 1L)
+                .hasFieldOrProperty("directors");
+
+        assertEquals(directors.toString(), filmWithDirector.getDirectors().toString());
+    }
+
+    @Test
+    public void testDeleteDirectorToFilm(){
+        Film film = filmBuilder.build();
+        Film filmAdded = filmStorage.addFilm(film);
+
+        Director director = directorBuilder.build();
+        Director addedDirector = directorDao.addDirector(director);
+
+        filmStorage.addDirectorToFilm(filmAdded.getId(), addedDirector.getId());
+
+        directorDao.deleteDirector(addedDirector.getId());
+        Film filmWithoutDirector = filmStorage.findFilmById(filmAdded.getId());
+
+        assertThat(filmWithoutDirector)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", 1L)
+                .hasFieldOrProperty("directors");
+
+        assertEquals(new ArrayList<>(), filmWithoutDirector.getDirectors());
     }
 }

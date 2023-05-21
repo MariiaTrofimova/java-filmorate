@@ -54,7 +54,9 @@ public class Film {
     }
 
     public List<Director> getDirectors() {
-        return directors.stream().sorted(Comparator.comparingInt(Director::getId)).collect(Collectors.toList());
+        return directors.stream()
+                .sorted(Comparator.comparing(Director::getId))
+                .collect(Collectors.toList());
     }
 
     public void addDirector(Director director) {
