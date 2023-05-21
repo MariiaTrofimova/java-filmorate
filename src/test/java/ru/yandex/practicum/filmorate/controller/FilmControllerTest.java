@@ -18,6 +18,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertNotNull;
@@ -355,7 +356,7 @@ class FilmControllerTest {
 
     @Test
     void shouldListEmptyListTopFilms() throws Exception {
-        when(service.listTopFilms(10)).thenReturn(Collections.EMPTY_LIST);
+        when(service.listTopFilms(10, Optional.empty(), Optional.empty())).thenReturn(Collections.EMPTY_LIST);
         this.mockMvc
                 .perform(get(url + "/popular?count="))
                 .andDo(print())
@@ -367,7 +368,7 @@ class FilmControllerTest {
     void shouldListTopFilms() throws Exception {
         Film film1 = filmBuilder.id(1).name("Film name1").build();
         Film film2 = filmBuilder.id(2).name("Film name2").build();
-        when(service.listTopFilms(2)).thenReturn(List.of(film1, film2));
+        when(service.listTopFilms(2, Optional.empty(), Optional.empty())).thenReturn(List.of(film1, film2));
 
         mockMvc.perform(get(url + "/popular?count=2"))
                 .andDo(print())
