@@ -65,6 +65,15 @@ create table IF NOT EXISTS LIKES
     primary key (FILM_ID, USER_ID)
 );
 
+CREATE TABLE IF NOT EXISTS USER_EVENTS (
+    event_id SERIAL PRIMARY KEY,
+    timestamp TIMESTAMP,
+    user_id INTEGER NOT NULL,
+    event_type VARCHAR,
+    operation VARCHAR,
+    entity_id INTEGER
+);
+
 create table IF NOT EXISTS DIRECTORS
 (
     DIRECTOR_ID INTEGER auto_increment
