@@ -252,7 +252,7 @@ class FilmorateApplicationTests {
         assertTrue(isDeleted);
 
         List<Film> films = filmStorage.listFilms();
-        assertEquals(0,films.size());
+        assertEquals(0, films.size());
     }
 
 
@@ -277,6 +277,31 @@ class FilmorateApplicationTests {
         assertNotNull(topFilms);
         assertEquals(topFilms.size(), 2);
         assertEquals(topFilms.get(0).getId(), 2);
+    }
+
+    @Test
+    public void testListTopFilmsByYear() {
+        List<Film> topFilms = filmStorage.listTopFilmsByYear(2000);
+        assertThat(topFilms)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
+
+        filmStorage.addFilm(filmBuilder.build());
+        filmStorage.addFilm(filmBuilder.releaseDate(LocalDate.of(2001, 1, 1)).build());
+        userStorage.addUser(userBuilder.build());
+
+        topFilms = filmStorage.listTopFilmsByYear(2000);
+        assertNotNull(topFilms);
+        assertEquals(topFilms.size(), 1);
+        assertEquals(topFilms.get(0).getId(), 1);
+
+        Film updatedFilm = filmBuilder.id(2).releaseDate(testReleaseDate).build();
+        filmStorage.updateFilm(updatedFilm);
+
+        topFilms = filmStorage.listTopFilmsByYear(2000);
+        assertNotNull(topFilms);
+        assertEquals(topFilms.size(), 2);
+        assertEquals(topFilms.get(0).getId(), 1);
     }
 
     @Test
