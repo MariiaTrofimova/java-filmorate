@@ -17,6 +17,8 @@ public interface FilmStorage {
 
     List<Film> listTopFilms();
 
+    List<Film> listTopFilms(List<Long> ids);
+
     List<Film> listTopFilmsByYear(int count, int year);
 
     List<Film> listTopFilmsByYear(int year);
@@ -38,4 +40,8 @@ public interface FilmStorage {
     void addDirectorToFilm(long filmId, long directorId);
 
     void clearDirectorsForFilm(long filmId);
+
+    List<Long> findFilmIdsByTitleQuery(String query);
+
+    List<Long> findFilmIdsByDirectorQuery(String query);
 }

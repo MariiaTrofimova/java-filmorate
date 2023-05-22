@@ -49,6 +49,13 @@ public class FilmController {
         return service.listFilmsByDirector(directorId, sortBy);
     }
 
+    @GetMapping("/search")
+    public List<Film> findFilmsByTitleAndDirector(
+            @RequestParam String query,
+            @RequestParam String[] by) {
+        return service.findFilmsByQuery(query, by);
+    }
+
     @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Film addFilm(@Valid @RequestBody Film film) {

@@ -75,6 +75,20 @@ public class DbFilmService implements FilmService {
     }
 
     @Override
+    public List<Film> findFilmsByQuery(String query, String[] by) {
+        List<Long> filmIds = new ArrayList<>();
+        if (Arrays.asList(by).contains("director")) {
+            filmIds.addAll(storage.findFilmIdsByDirectorQuery(query));
+        }
+        if (Arrays.asList(by).contains("title")) {
+            filmIds.addAll(storage.findFilmIdsByTitleQuery(query));
+        }
+        filmIds = filmIds.stream().distinct().collect(Collectors.toList());
+        List<Film> topFilms = storage.listTopFilms(filmIds);
+        return getFilmsWithDirectors(getFilmsWithGenres(topFilms));
+    }
+
+    @Override
     public Film findFilmById(long id) {
         Film film = storage.findFilmById(id);
         directorDao.getDirectorsByFilm(film.getId())
