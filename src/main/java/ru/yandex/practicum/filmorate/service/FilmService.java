@@ -19,6 +19,8 @@ public interface FilmService {
 
     List<Film> listTopFilms(int count, Optional<Integer> year, Optional<Integer> genreId);
 
+    List<Film> findFilmsByQuery(String query, String[] by);
+
     List<Long> addLike(long filmId, long userId);
 
     List<Long> deleteLike(long filmId, long userId);

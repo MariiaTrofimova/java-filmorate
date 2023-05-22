@@ -5,6 +5,9 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -21,10 +24,12 @@ import java.util.List;
 @Slf4j
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedJdbcTemplate;
     private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 
-    public FilmDbStorage(JdbcTemplate jdbcTemplate) {
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedJdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+        this.namedJdbcTemplate = namedJdbcTemplate;
     }
 
     @Override
@@ -84,7 +89,7 @@ public class FilmDbStorage implements FilmStorage {
         throw new NotFoundException(String.format("Фильм с id %d не найден", film.getId()));
     }
 
-
+    @Override
     public List<Film> listTopFilms(int count) {
         String sql = "select f.*, m.name as mpa_name from films as f " +
                 "join mpa as m on f.mpa_id = m.mpa_id " +
@@ -108,6 +113,21 @@ public class FilmDbStorage implements FilmStorage {
                 "as top on f.film_id = top.film_id " +
                 "order by top.likes_qty desc";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs));
+    }
+
+    @Override
+    public List<Film> listTopFilms(List<Long> ids) {
+        String sql = "select f.*, m.name as mpa_name " +
+                "from films as f " +
+                "join mpa as m on f.mpa_id = m.mpa_id " +
+                "left join " +
+                "(select film_id, COUNT(user_id) AS likes_qty " +
+                "from likes group by film_id order by likes_qty desc) " +
+                "as top on f.film_id = top.film_id " +
+                "where f.film_id in (:ids)" +
+                "order by top.likes_qty desc";
+        SqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
+        return namedJdbcTemplate.query(sql, parameters, (rs, rowNum) -> mapRowToFilm(rs));
     }
 
     @Override
@@ -149,6 +169,26 @@ public class FilmDbStorage implements FilmStorage {
     public void clearDirectorsForFilm(long filmId) {
         String sql = "delete from film_director where film_id = ?";
         jdbcTemplate.update(sql, filmId);
+    }
+
+    @Override
+    public List<Long> findFilmIdsByTitleQuery(String query) {
+        String sql = "select film_id from films " +
+                "where lower(name) like :query";
+        SqlParameterSource param =
+                new MapSqlParameterSource("query", "%" + query.toLowerCase() + "%");
+        return namedJdbcTemplate.queryForList(sql, param, Long.class);
+    }
+
+    @Override
+    public List<Long> findFilmIdsByDirectorQuery(String query) {
+        String sql = "select fd.film_id " +
+                "from film_director as fd " +
+                "join directors as d on fd.director_id = d.director_id " +
+                "where lower(d.name) like :query";
+        SqlParameterSource param =
+                new MapSqlParameterSource("query", "%" + query.toLowerCase() + "%");
+        return namedJdbcTemplate.queryForList(sql, param, Long.class);
     }
 
     @Override

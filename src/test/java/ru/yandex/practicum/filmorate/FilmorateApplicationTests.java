@@ -720,4 +720,43 @@ class FilmorateApplicationTests {
 
         assertEquals(new ArrayList<>(), filmWithoutDirector.getDirectors());
     }
+
+    @Test
+    public void testFindFilmIdsByTitleQuery() {
+        List<Long> filmIds = filmStorage.findFilmIdsByTitleQuery("a");
+        assertNotNull(filmIds);
+        assertEquals(0, filmIds.size());
+
+        Film film = filmBuilder.build();
+        filmStorage.addFilm(film);
+
+        filmIds = filmStorage.findFilmIdsByTitleQuery("a");
+        assertNotNull(filmIds);
+        assertEquals(1, filmIds.size());
+
+        filmIds = filmStorage.findFilmIdsByTitleQuery("AME");
+        assertNotNull(filmIds);
+        assertEquals(1, filmIds.size());
+    }
+
+    @Test
+    public void testFindFilmIdsByDirectorQuery() {
+        List<Long> filmIds = filmStorage.findFilmIdsByDirectorQuery("a");
+        assertNotNull(filmIds);
+        assertEquals(0, filmIds.size());
+
+        Film film = filmBuilder.build();
+        filmStorage.addFilm(film);
+        Director director = directorBuilder.build();
+        directorDao.addDirector(director);
+        filmStorage.addDirectorToFilm(1, 1);
+
+        filmIds = filmStorage.findFilmIdsByDirectorQuery("a");
+        assertNotNull(filmIds);
+        assertEquals(1, filmIds.size());
+
+        filmIds = filmStorage.findFilmIdsByDirectorQuery("AME");
+        assertNotNull(filmIds);
+        assertEquals(1, filmIds.size());
+    }
 }
