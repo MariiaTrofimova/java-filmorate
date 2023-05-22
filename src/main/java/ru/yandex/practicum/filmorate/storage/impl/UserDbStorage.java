@@ -44,6 +44,12 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
+    public boolean deleteUser(long id) {
+        String sql = "delete from users where user_id = ?";
+        return jdbcTemplate.update(sql, id) > 0;
+    }
+
+    @Override
     @SneakyThrows
     public User addUser(User user) {
         if (user.getName() == null || user.getName().isBlank()) {

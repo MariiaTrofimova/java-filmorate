@@ -154,6 +154,21 @@ class FilmorateApplicationTests {
     }
 
     @Test
+    public void testDeleteUser() {
+        boolean isDeleted;
+        isDeleted = userStorage.deleteUser(0);
+        assertFalse(isDeleted);
+
+        User user = userBuilder.build();
+        userStorage.addUser(user);
+        isDeleted = userStorage.deleteUser(1);
+        assertTrue(isDeleted);
+
+        List<User> users = userStorage.listUsers();
+        assertEquals(0, users.size());
+    }
+
+    @Test
     public void testAddFilm() {
         Film film = filmBuilder.build();
         Film filmAdded = filmStorage.addFilm(film);
@@ -224,6 +239,22 @@ class FilmorateApplicationTests {
         );
         assertEquals("Фильм с id 999 не найден", ex.getMessage());
     }
+
+    @Test
+    public void testDeleteFilm() {
+        boolean isDeleted;
+        isDeleted = filmStorage.deleteFilm(0);
+        assertFalse(isDeleted);
+
+        Film film = filmBuilder.build();
+        filmStorage.addFilm(film);
+        isDeleted = filmStorage.deleteFilm(1);
+        assertTrue(isDeleted);
+
+        List<Film> films = filmStorage.listFilms();
+        assertEquals(0,films.size());
+    }
+
 
     @Test
     public void testListTopFilms() {

@@ -13,6 +13,8 @@ public interface UserService {
 
     User updateUser(User user);
 
+    boolean deleteUser(long id);
+
     List<User> listFriends(long id);
 
     List<User> listCommonFriends(long id, long otherId);

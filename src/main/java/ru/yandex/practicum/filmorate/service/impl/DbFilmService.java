@@ -134,6 +134,11 @@ public class DbFilmService implements FilmService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public boolean deleteFilm(long id) {
+        return storage.deleteFilm(id);
+    }
+
     private List<Film> getFilmsWithGenres(List<Film> films) {
         List<Long> filmIds = films.stream()
                 .map(Film::getId).collect(Collectors.toList());
