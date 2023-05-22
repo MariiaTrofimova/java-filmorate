@@ -24,4 +24,6 @@ public interface FilmService {
     List<Long> deleteLike(long filmId, long userId);
 
     List<Film> listFilmsByDirector(long directorId, Optional<String> sortParam);
+
+    boolean deleteFilm(long id);
 }

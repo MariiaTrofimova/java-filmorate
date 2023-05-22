@@ -54,6 +54,11 @@ public class UserController {
         return service.updateUser(user);
     }
 
+    @DeleteMapping("/{id}")
+    public boolean deleteUser(@PathVariable long id) {
+        return service.deleteUser(id);
+    }
+
     @PutMapping("/{id}/friends/{friendId}")
     public List<Long> addFriend(@PathVariable long id, @PathVariable long friendId) {
         return service.addFriend(id, friendId);

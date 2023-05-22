@@ -44,7 +44,13 @@ public class DbUserService implements UserService {
     }
 
     @Override
+    public boolean deleteUser(long id) {
+        return storage.deleteUser(id);
+    }
+
+    @Override
     public List<User> listFriends(long id) {
+        findUserById(id);
         return friendshipDao.getFriendsByUser(id).stream()
                 .map(this::findUserById)
                 .collect(Collectors.toList());

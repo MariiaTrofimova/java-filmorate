@@ -154,6 +154,21 @@ class FilmorateApplicationTests {
     }
 
     @Test
+    public void testDeleteUser() {
+        boolean isDeleted;
+        isDeleted = userStorage.deleteUser(0);
+        assertFalse(isDeleted);
+
+        User user = userBuilder.build();
+        userStorage.addUser(user);
+        isDeleted = userStorage.deleteUser(1);
+        assertTrue(isDeleted);
+
+        List<User> users = userStorage.listUsers();
+        assertEquals(0, users.size());
+    }
+
+    @Test
     public void testAddFilm() {
         Film film = filmBuilder.build();
         Film filmAdded = filmStorage.addFilm(film);
@@ -226,6 +241,22 @@ class FilmorateApplicationTests {
     }
 
     @Test
+    public void testDeleteFilm() {
+        boolean isDeleted;
+        isDeleted = filmStorage.deleteFilm(0);
+        assertFalse(isDeleted);
+
+        Film film = filmBuilder.build();
+        filmStorage.addFilm(film);
+        isDeleted = filmStorage.deleteFilm(1);
+        assertTrue(isDeleted);
+
+        List<Film> films = filmStorage.listFilms();
+        assertEquals(0, films.size());
+    }
+
+
+    @Test
     public void testListTopFilms() {
         List<Film> topFilms = filmStorage.listTopFilms(10);
         assertThat(topFilms)
@@ -246,6 +277,31 @@ class FilmorateApplicationTests {
         assertNotNull(topFilms);
         assertEquals(topFilms.size(), 2);
         assertEquals(topFilms.get(0).getId(), 2);
+    }
+
+    @Test
+    public void testListTopFilmsByYear() {
+        List<Film> topFilms = filmStorage.listTopFilmsByYear(2000);
+        assertThat(topFilms)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
+
+        filmStorage.addFilm(filmBuilder.build());
+        filmStorage.addFilm(filmBuilder.releaseDate(LocalDate.of(2001, 1, 1)).build());
+        userStorage.addUser(userBuilder.build());
+
+        topFilms = filmStorage.listTopFilmsByYear(2000);
+        assertNotNull(topFilms);
+        assertEquals(topFilms.size(), 1);
+        assertEquals(topFilms.get(0).getId(), 1);
+
+        Film updatedFilm = filmBuilder.id(2).releaseDate(testReleaseDate).build();
+        filmStorage.updateFilm(updatedFilm);
+
+        topFilms = filmStorage.listTopFilmsByYear(2000);
+        assertNotNull(topFilms);
+        assertEquals(topFilms.size(), 2);
+        assertEquals(topFilms.get(0).getId(), 1);
     }
 
     @Test
