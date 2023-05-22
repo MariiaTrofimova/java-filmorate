@@ -759,4 +759,28 @@ class FilmorateApplicationTests {
         assertNotNull(filmIds);
         assertEquals(1, filmIds.size());
     }
+
+    @Test
+    public void testFindCommonFilmIds() {
+        User user = userBuilder.build();
+        userStorage.addUser(user);
+        userStorage.addUser(user);
+
+        List<Long> filmIds = filmStorage.findCommonFilmIds(1L, 2L);
+        assertNotNull(filmIds);
+        assertEquals(0, filmIds.size());
+
+        Film film = filmBuilder.build();
+        filmStorage.addFilm(film);
+        filmStorage.addLike(1, 1);
+
+        filmIds = filmStorage.findCommonFilmIds(1L, 2L);
+        assertNotNull(filmIds);
+        assertEquals(0, filmIds.size());
+
+        filmStorage.addLike(1, 2);
+        filmIds = filmStorage.findCommonFilmIds(1L, 2L);
+        assertNotNull(filmIds);
+        assertEquals(1, filmIds.size());
+    }
 }

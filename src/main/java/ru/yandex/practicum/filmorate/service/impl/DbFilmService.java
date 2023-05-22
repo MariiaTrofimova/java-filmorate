@@ -89,6 +89,14 @@ public class DbFilmService implements FilmService {
     }
 
     @Override
+    public List<Film> findCommonFilms(Long userId, Long friendId) {
+        userService.findUserById(userId);
+        userService.findUserById(friendId);
+        List<Long> filmIds = storage.findCommonFilmIds(userId, friendId);
+        return storage.listTopFilms(filmIds);
+    }
+
+    @Override
     public Film findFilmById(long id) {
         Film film = storage.findFilmById(id);
         directorDao.getDirectorsByFilm(film.getId())
