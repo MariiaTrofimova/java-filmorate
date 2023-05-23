@@ -20,7 +20,6 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 @Repository("FilmDbStorage")
 @Slf4j
@@ -261,7 +260,7 @@ public class FilmDbStorage implements FilmStorage {
         int duration = rs.getInt("duration");
         int mpaId = rs.getInt("mpa_id");
         String mpaName = rs.getString("mpa_name");
-      //  Set<Long> likes = Collections.singleton(rs.getLong("likes"));
+        //  Set<Long> likes = Collections.singleton(rs.getLong("likes"));
 
         Mpa mpa = Mpa.builder()
                 .id(mpaId)
