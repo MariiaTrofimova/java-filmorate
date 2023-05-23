@@ -192,6 +192,14 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    public List<Long> findCommonFilmIds(Long userId, Long friendId) {
+        String sql = "select film_id from likes " +
+                "where user_id in (?, ?) " +
+                "group by film_id having count(user_id) = 2 ";
+        return jdbcTemplate.queryForList(sql, Long.class, userId, friendId);
+    }
+
+    @Override
     public void addDirectorToFilm(long filmId, long directorId) {
         String sql = "insert into film_director(film_id, director_id) " +
                 "values (?, ?)";
