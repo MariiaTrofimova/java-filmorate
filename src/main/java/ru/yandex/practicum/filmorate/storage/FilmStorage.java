@@ -36,6 +36,7 @@ public interface FilmStorage {
     boolean addLike(long filmId, long userId);
 
     boolean deleteLike(long filmId, long userId);
+
     void addDirectorToFilm(long filmId, long directorId);
 
     void clearDirectorsForFilm(long filmId);

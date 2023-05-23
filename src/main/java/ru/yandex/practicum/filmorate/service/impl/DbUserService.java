@@ -55,99 +55,99 @@ public class DbUserService implements UserService {
         return storage.deleteUser(id);
     }
 
-        public List<Film> recommendations ( long userId){
-            List<Film> likeFilm = filmStorage.recommendations(userId);
-            Map<Long, List<Film>> likeAndUser = new HashMap<>();
-            Map<Long, List<Film>> matchesLike = new HashMap<>();
-            int maxMatches = 0;
-            List<Film> likeUser;
-            Long id = null;
-            for (Film film : recommendations(userId)) {
-                for (Long user : film.getLikes()) {
-                    if (likeAndUser.containsKey(user)) {
-                        likeAndUser.get(user).add(film);
-                    } else {
-                        List<Film> likedFilms = new ArrayList<>();
-                        likedFilms.add(film);
-                        likeAndUser.put(user, likedFilms);
-                    }
+    public List<Film> recommendations(long userId) {
+        List<Film> likeFilm = filmStorage.recommendations(userId);
+        Map<Long, List<Film>> likeAndUser = new HashMap<>();
+        Map<Long, List<Film>> matchesLike = new HashMap<>();
+        int maxMatches = 0;
+        List<Film> likeUser;
+        Long id = null;
+        for (Film film : recommendations(userId)) {
+            for (Long user : film.getLikes()) {
+                if (likeAndUser.containsKey(user)) {
+                    likeAndUser.get(user).add(film);
+                } else {
+                    List<Film> likedFilms = new ArrayList<>();
+                    likedFilms.add(film);
+                    likeAndUser.put(user, likedFilms);
                 }
             }
-            likeUser = likeAndUser.get(userId);
+        }
+        likeUser = likeAndUser.get(userId);
 
-            for (Map.Entry<Long, List<Film>> map : likeAndUser.entrySet()) {
-                if (matchesLike.containsKey(map.getKey())) {
-                    matchesLike.put(map.getKey(), likeFilm);
-                }
-                List<Film> matches = matchesLike.get(map.getKey());
-                matches.stream()
-                        .filter(film -> map.getValue().contains(film))
-                        .forEach(film -> matchesLike.put(map.getKey(), matches));
+        for (Map.Entry<Long, List<Film>> map : likeAndUser.entrySet()) {
+            if (matchesLike.containsKey(map.getKey())) {
+                matchesLike.put(map.getKey(), likeFilm);
             }
-            for (Map.Entry<Long, List<Film>> map : matchesLike.entrySet()) {
-                if (maxMatches < map.getValue().size()) {
-                    maxMatches = map.getValue().size();
-                    id = map.getKey();
-                }
+            List<Film> matches = matchesLike.get(map.getKey());
+            matches.stream()
+                    .filter(film -> map.getValue().contains(film))
+                    .forEach(film -> matchesLike.put(map.getKey(), matches));
+        }
+        for (Map.Entry<Long, List<Film>> map : matchesLike.entrySet()) {
+            if (maxMatches < map.getValue().size()) {
+                maxMatches = map.getValue().size();
+                id = map.getKey();
             }
-            return likeAndUser.get(id).stream()
-                    .filter(film -> !likeUser.contains(film))
-                    .collect(Collectors.toList());
         }
-
-        @Override
-        public List<User> listFriends ( long id){
-            findUserById(id);
-            return friendshipDao.getFriendsByUser(id).stream()
-                    .map(this::findUserById)
-                    .collect(Collectors.toList());
-        }
-
-        @Override
-        public List<User> listCommonFriends ( long id, long otherId){
-            findUserById(id);
-            findUserById(otherId);
-            return friendshipDao.getFriendsByUser(id).stream()
-                    .filter(friendshipDao.getFriendsByUser(otherId)::contains)
-                    .map(this::findUserById)
-                    .collect(Collectors.toList());
-        }
-
-        @Override
-        public List<Long> addFriend ( long id, long friendId){
-            findUserById(id);
-            findUserById(friendId);
-            boolean isUserToFriend = friendshipDao.getFriendsByUser(id).contains(friendId);
-            boolean isFriendToUser = friendshipDao.getFriendsByUser(friendId).contains(id);
-            if (!isUserToFriend && !isFriendToUser) {
-                friendshipDao.addFriend(id, friendId);
-            } else if (isUserToFriend && !isFriendToUser) {
-                friendshipDao.updateFriend(friendId, id, true);
-            } else {
-                log.debug("Повторный запрос в друзья от пользователя с id {} пользователю с id {}", id, friendId);
-            }
-            return friendshipDao.getFriendsByUser(id);
-        }
-
-        @Override
-        public List<Long> deleteFriend ( long id, long friendId){
-            findUserById(id);
-            findUserById(friendId);
-            boolean isUserHasFriend = friendshipDao.getFriendsByUser(id).contains(friendId);
-            boolean isFriendHasUser = friendshipDao.getFriendsByUser(friendId).contains(id);
-            if (!isUserHasFriend) {
-                log.warn("Пользователь c id {} не является другом пользователя c id {}", friendId, id);
-                throw new NotFoundException(
-                        String.format("Пользователь c id %d не является другом пользователя c id %d",
-                                friendId, id));
-            } else if (!isFriendHasUser) {
-                friendshipDao.deleteFriend(friendId, id);
-            } else {
-                if (!friendshipDao.updateFriend(id, friendId, false)) {
-                    friendshipDao.deleteFriend(friendId, id);
-                    friendshipDao.addFriend(id, friendId);
-                }
-            }
-            return friendshipDao.getFriendsByUser(id);
-        }
+        return likeAndUser.get(id).stream()
+                .filter(film -> !likeUser.contains(film))
+                .collect(Collectors.toList());
     }
+
+    @Override
+    public List<User> listFriends(long id) {
+        findUserById(id);
+        return friendshipDao.getFriendsByUser(id).stream()
+                .map(this::findUserById)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<User> listCommonFriends(long id, long otherId) {
+        findUserById(id);
+        findUserById(otherId);
+        return friendshipDao.getFriendsByUser(id).stream()
+                .filter(friendshipDao.getFriendsByUser(otherId)::contains)
+                .map(this::findUserById)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Long> addFriend(long id, long friendId) {
+        findUserById(id);
+        findUserById(friendId);
+        boolean isUserToFriend = friendshipDao.getFriendsByUser(id).contains(friendId);
+        boolean isFriendToUser = friendshipDao.getFriendsByUser(friendId).contains(id);
+        if (!isUserToFriend && !isFriendToUser) {
+            friendshipDao.addFriend(id, friendId);
+        } else if (isUserToFriend && !isFriendToUser) {
+            friendshipDao.updateFriend(friendId, id, true);
+        } else {
+            log.debug("Повторный запрос в друзья от пользователя с id {} пользователю с id {}", id, friendId);
+        }
+        return friendshipDao.getFriendsByUser(id);
+    }
+
+    @Override
+    public List<Long> deleteFriend(long id, long friendId) {
+        findUserById(id);
+        findUserById(friendId);
+        boolean isUserHasFriend = friendshipDao.getFriendsByUser(id).contains(friendId);
+        boolean isFriendHasUser = friendshipDao.getFriendsByUser(friendId).contains(id);
+        if (!isUserHasFriend) {
+            log.warn("Пользователь c id {} не является другом пользователя c id {}", friendId, id);
+            throw new NotFoundException(
+                    String.format("Пользователь c id %d не является другом пользователя c id %d",
+                            friendId, id));
+        } else if (!isFriendHasUser) {
+            friendshipDao.deleteFriend(friendId, id);
+        } else {
+            if (!friendshipDao.updateFriend(id, friendId, false)) {
+                friendshipDao.deleteFriend(friendId, id);
+                friendshipDao.addFriend(id, friendId);
+            }
+        }
+        return friendshipDao.getFriendsByUser(id);
+    }
+}
