@@ -261,7 +261,7 @@ public class FilmDbStorage implements FilmStorage {
         int duration = rs.getInt("duration");
         int mpaId = rs.getInt("mpa_id");
         String mpaName = rs.getString("mpa_name");
-        Set<Long> likes = Collections.singleton(rs.getLong("likes"));
+      //  Set<Long> likes = Collections.singleton(rs.getLong("likes"));
 
         Mpa mpa = Mpa.builder()
                 .id(mpaId)
@@ -273,7 +273,6 @@ public class FilmDbStorage implements FilmStorage {
                 .description(description)
                 .releaseDate(releaseDate)
                 .duration(duration)
-                .likes(likes)
                 .mpa(mpa)
                 .build();
     }
