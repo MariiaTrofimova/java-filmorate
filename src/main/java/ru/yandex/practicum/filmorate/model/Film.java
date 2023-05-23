@@ -30,7 +30,8 @@ public class Film {
     private Mpa mpa;
     private final Set<Genre> genres = new HashSet<>();
     private final Set<Director> directors = new HashSet<>();
-    private final Set<Long> likes = new HashSet<>(); //id пользователей, поставивших лайки
+    //  private final Set<Long> likes = new HashSet<>(); //id пользователей, поставивших лайки
+      private Set<Long> likes = new HashSet<>(); //id пользователей, поставивших лайки
     //я бы оставила как параметр фильма, удалила лишние dao и модели, являющиеся не сущностями, а связями
 
     public void addLike(long id) {
