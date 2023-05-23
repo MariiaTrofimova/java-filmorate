@@ -15,7 +15,9 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Repository("FilmDbStorage")
 @Slf4j
@@ -128,6 +130,13 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.update(sql, filmId, userId) > 0;
     }
 
+    @Override
+    public List<Film> recommendations(long userId) {
+        String sql = "select films.*, mpa.mpa_name from films join mpa on films_mpa = mpa.mpa_id " +
+                "where film_id in (select film_id from likes)";
+        return Collections.singletonList(jdbcTemplate.query(sql, this::mapRowToFilm));
+    }
+
     private Film mapRowToFilm(ResultSet rs) throws SQLException {
         long id = rs.getLong("film_id");
         String name = rs.getString("name");
@@ -136,6 +145,7 @@ public class FilmDbStorage implements FilmStorage {
         int duration = rs.getInt("duration");
         int mpaId = rs.getInt("mpa_id");
         String mpaName = rs.getString("mpa_name");
+        Set<Long> likes = Collections.singleton(rs.getLong("likes"));
 
         Mpa mpa = Mpa.builder()
                 .id(mpaId)
@@ -147,6 +157,7 @@ public class FilmDbStorage implements FilmStorage {
                 .description(description)
                 .releaseDate(releaseDate)
                 .duration(duration)
+                .likes(likes)
                 .mpa(mpa)
                 .build();
     }

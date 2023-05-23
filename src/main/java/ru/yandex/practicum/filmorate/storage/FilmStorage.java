@@ -26,4 +26,6 @@ public interface FilmStorage {
     boolean addLike(long filmId, long userId);
 
     boolean deleteLike(long filmId, long userId);
+
+    List<Film> recommendations(long userId);
 }
