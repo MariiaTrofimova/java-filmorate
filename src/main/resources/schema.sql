@@ -64,3 +64,22 @@ create table IF NOT EXISTS LIKES
         references USERS ON DELETE CASCADE,
     primary key (FILM_ID, USER_ID)
 );
+
+create table IF NOT EXISTS REVIEWS
+(
+    REVIEW_ID      INTEGER auto_increment
+        primary key,
+    CONTENT  CHARACTER VARYING(400) not null,
+    IS_POSITIVE    BOOLEAN           not null,
+    USER_ID     INTEGER                not null,
+    FILM_ID     INTEGER                not null,
+    USE_FUL       INTEGER                not null
+);
+
+create table IF NOT EXISTS REVIEW_LIKES
+(
+    REVIEW_ID   INTEGER not null,
+    LIKE_ID INTEGER not null,
+    IS_POSITIVE    BOOLEAN not null,
+    primary key (REVIEW_ID, LIKE_ID)
+);
