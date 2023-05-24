@@ -20,7 +20,6 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 @Repository("FilmDbStorage")
 @Slf4j
@@ -247,7 +246,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film>  getFilmsWithLikes() {
+    public List<Film> getFilmsWithLikes() {
         String sql = "select f.*, m.name as mpa_name " +
                 "from films as f " +
                 "join mpa as m on f.mpa_id = m.mpa_id " +

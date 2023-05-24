@@ -56,7 +56,7 @@ public class DbUserService implements UserService {
     }
 
     public List<Film> recommendations(long userId) {
-        List<Film> likeFilm = filmStorage. getFilmsWithLikes();
+        List<Film> likeFilm = filmStorage.getFilmsWithLikes();
         Map<Long, List<Film>> likeAndUser = new HashMap<>();
         Map<Long, Long> matchesLike = new HashMap<>();
         int maxMatches = 0;
