@@ -80,3 +80,25 @@ create table IF NOT EXISTS FILM_DIRECTOR
         references DIRECTORS ON DELETE CASCADE,
     primary key (FILM_ID, DIRECTOR_ID)
 );
+
+create table IF NOT EXISTS REVIEWS
+(
+    REVIEW_ID   INTEGER auto_increment
+        primary key,
+    CONTENT     CHARACTER VARYING(400) not null,
+    IS_POSITIVE BOOLEAN                not null,
+    USER_ID     INTEGER                not null
+        references USERS ON DELETE CASCADE,
+    FILM_ID     INTEGER                not null
+        references FILMS ON DELETE CASCADE
+);
+
+create table IF NOT EXISTS REVIEW_LIKES
+(
+    REVIEW_ID   INTEGER not null
+        references USERS ON DELETE CASCADE,
+    USER_ID     INTEGER not null
+        references USERS ON DELETE CASCADE,
+    IS_POSITIVE INTEGER not null,
+    primary key (REVIEW_ID, USER_ID)
+);
