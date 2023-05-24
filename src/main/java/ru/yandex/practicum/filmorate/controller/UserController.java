@@ -69,6 +69,7 @@ public class UserController {
     public List<Long> deleteFriend(@PathVariable long id, @PathVariable long friendId) {
         return service.deleteFriend(id, friendId);
     }
+
     @GetMapping("/{id}/recommendations")
     public List<Film> recommendations(@PathVariable long userId) {
         return service.recommendations(userId);
