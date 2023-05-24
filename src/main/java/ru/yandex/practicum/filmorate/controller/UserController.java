@@ -70,7 +70,7 @@ public class UserController {
         return service.deleteFriend(id, friendId);
     }
 
-    @GetMapping("/users/{id}/recommendations")
+    @GetMapping("/{id}/recommendations")
     public List<Film> recommendations(@PathVariable long userId) {
         return service.recommendations(userId);
     }
