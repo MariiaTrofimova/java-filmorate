@@ -94,15 +94,15 @@ public class ReviewDaoImpl implements ReviewDao {
         long id = rs.getLong("review_id");
         String content = rs.getString("content");
         boolean isPositive = rs.getBoolean("is_positive");
-        long user_id = rs.getLong("user_id");
-        long film_id = rs.getLong("film_id");
+        long userId = rs.getLong("user_id");
+        long filmId = rs.getLong("film_id");
 
         return Review.builder()
                 .reviewId(id)
                 .content(content)
                 .isPositive(isPositive)
-                .userId(user_id)
-                .filmId(film_id)
+                .userId(userId)
+                .filmId(filmId)
                 .build();
     }
 }
