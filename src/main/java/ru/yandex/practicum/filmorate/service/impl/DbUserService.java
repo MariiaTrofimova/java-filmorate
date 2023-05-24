@@ -58,11 +58,11 @@ public class DbUserService implements UserService {
     public List<Film> recommendations(long userId) {
         List<Film> likeFilm = filmStorage.recommendations(userId);
         Map<Long, List<Film>> likeAndUser = new HashMap<>();
-        Map<Long, List<Film>> matchesLike = new HashMap<>();
+        Map<Long, Long> matchesLike = new HashMap<>();
         int maxMatches = 0;
         List<Film> likeUser;
         Long id = null;
-        for (Film film : recommendations(userId)) {
+        for (Film film : likeFilm) {
             for (Long user : film.getLikes()) {
                 if (likeAndUser.containsKey(user)) {
                     likeAndUser.get(user).add(film);
@@ -77,17 +77,20 @@ public class DbUserService implements UserService {
 
         for (Map.Entry<Long, List<Film>> map : likeAndUser.entrySet()) {
             if (matchesLike.containsKey(map.getKey())) {
-                matchesLike.put(map.getKey(), likeFilm);
+                matchesLike.put(map.getKey(), null);
             }
-            List<Film> matches = matchesLike.get(map.getKey());
-            matches.stream()
+            Long matches = matchesLike.get(map.getKey());
+            likeUser.stream()
                     .filter(film -> map.getValue().contains(film))
-                    .forEach(film -> matchesLike.put(map.getKey(), matches));
+                    .forEach(film -> matchesLike.put(map.getKey(), matches + 1));
         }
-        for (Map.Entry<Long, List<Film>> map : matchesLike.entrySet()) {
-            if (maxMatches < map.getValue().size()) {
-                maxMatches = map.getValue().size();
+        for (Map.Entry<Long, Long> map : matchesLike.entrySet()) {
+            if (maxMatches < map.getValue()) {
+                maxMatches = Math.toIntExact(map.getValue());
                 id = map.getKey();
+            }
+            if (maxMatches == 0) {
+                return new ArrayList<>();
             }
         }
         return likeAndUser.get(id).stream()
