@@ -11,10 +11,7 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.FriendshipDao;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service("DbUserService")
@@ -152,7 +149,7 @@ public class DbUserService implements UserService {
                 return new ArrayList<>();
             }
         }
-        return likeAndUser.get(id).stream()
+        return likeAndUser.getOrDefault(id, Collections.emptyList()).stream()
                 .filter(film -> !likeUser.contains(film))
                 .collect(Collectors.toList());
     }
