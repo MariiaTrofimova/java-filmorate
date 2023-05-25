@@ -1,354 +1,549 @@
-package ru.yandex.practicum.filmorate.controller;
+package ru.yandex.practicum.filmorate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.jdbc.JdbcTestUtils;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.FriendshipDao;
+import ru.yandex.practicum.filmorate.storage.GenreDao;
+import ru.yandex.practicum.filmorate.storage.MpaDao;
+import ru.yandex.practicum.filmorate.storage.impl.FilmDbStorage;
+import ru.yandex.practicum.filmorate.storage.impl.UserDbStorage;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
-@WebMvcTest(UserController.class)
+@SpringBootTest
+@AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-class UserControllerTest {
+class FilmorateApplicationTests {
+    private final UserDbStorage userStorage;
+    private final FilmDbStorage filmStorage;
+    private final FriendshipDao friendshipDao;
+    private final GenreDao genreDao;
+    private final MpaDao mpaDao;
 
-    @MockBean
-    @Qualifier("DbUserService")
-    private final UserService service;
-    User user;
-    String url = "/users";
+    private final FilmService filmService;
+
     User.UserBuilder userBuilder;
-    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
-            .setDateFormat(new SimpleDateFormat("yyyy-MM-dd"));
-    @Autowired
-    private MockMvc mockMvc;
+    Film.FilmBuilder filmBuilder;
+    Genre.GenreBuilder genreBuilder;
+    Mpa.MpaBuilder mpaBuilder;
+
+    private final LocalDate testReleaseDate = LocalDate.of(2000, 1, 1);
+
+    private final JdbcTemplate jdbcTemplate;
 
     @BeforeEach
-    void setupBuilder() {
+    public void setup() {
         userBuilder = User.builder()
                 .email("e@mail.ru")
                 .login("Login")
+                .name("Name")
                 .birthday(LocalDate.of(1985, 9, 7));
+
+        mpaBuilder = Mpa.builder()
+                .id(1);
+
+        genreBuilder = Genre.builder()
+                .id(1);
+
+        filmBuilder = Film.builder()
+                .name("Film name")
+                .description("Film description")
+                .releaseDate(testReleaseDate)
+                .duration(90)
+                .mpa(mpaBuilder.build());
+    }
+
+    @AfterEach
+    public void cleanDb() {
+        JdbcTestUtils.deleteFromTables(jdbcTemplate,
+                "users", "films", "friendship", "film_genre", "likes");
+        jdbcTemplate.update("ALTER TABLE USERS ALTER COLUMN user_id RESTART WITH 1");
+        jdbcTemplate.update("ALTER TABLE FILMS ALTER COLUMN film_id RESTART WITH 1");
     }
 
     @Test
-    void shouldCreateMockMvc() {
-        assertNotNull(mockMvc);
+    public void testAddUser() {
+        User user = userBuilder.build();
+        User userAdded = userStorage.addUser(user);
+        assertThat(userAdded)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", 1L);
     }
 
     @Test
-    void shouldReturnEmptyListUsers() throws Exception {
-        when(service.listUsers()).thenReturn(Collections.EMPTY_LIST);
-        this.mockMvc
-                .perform(get(url))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(0)));
+    public void testFindUserById() {
+        User user = userBuilder.build();
+        User userAdded = userStorage.addUser(user);
+        User userFound = userStorage.findUserById(userAdded.getId());
+        assertThat(userFound)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", 1L)
+                .isEqualTo(userAdded);
+
+        NotFoundException ex = assertThrows(
+                NotFoundException.class,
+                () -> userStorage.findUserById(-1L)
+        );
+        assertEquals("Пользователь с id -1 не найден", ex.getMessage());
+
+        ex = assertThrows(
+                NotFoundException.class,
+                () -> userStorage.findUserById(999L)
+        );
+        assertEquals("Пользователь с id 999 не найден", ex.getMessage());
     }
 
     @Test
-    void shouldReturnSingleListUsers() throws Exception {
-        when(service.listUsers()).thenReturn(List.of(
-                userBuilder.id(1).login("Login1").email("e1@mail.ru").name("name1").build()));
-        mockMvc.perform(get(url))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()", is(1)))
-                .andExpect(jsonPath("$[0].id", is(1)));
+    public void testListUsers() {
+        List<User> users = userStorage.listUsers();
+        assertThat(users)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
+
+        User user = userBuilder.build();
+        userStorage.addUser(user);
+        users = userStorage.listUsers();
+        assertNotNull(users);
+        assertEquals(users.size(), 1);
+        assertEquals(users.get(0).getId(), 1);
     }
 
     @Test
-    void shouldReturnListOfTwoUsers() throws Exception {
-        when(service.listUsers()).thenReturn(List.of(
-                userBuilder.id(1).login("Login1").email("e1@mail.ru").name("name1").build(),
-                userBuilder.id(2).login("Login2").email("e2@mail.ru").name("name2").build()
-        ));
+    public void testUpdateUser() {
+        User user = userBuilder.build();
+        userStorage.addUser(user);
+        User userToUpdate = userBuilder.id(1L).name("Name Updated").build();
+        User userUpdated = userStorage.updateUser(userToUpdate);
+        assertThat(userUpdated)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", 1L)
+                .hasFieldOrPropertyWithValue("name", "Name Updated");
 
-        mockMvc.perform(get(url))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()", is(2)))
-                .andExpect(jsonPath("$[*].id", containsInAnyOrder(1, 2)))
-                .andExpect(jsonPath("$[*].login", containsInAnyOrder("Login1", "Login2")));
+        NotFoundException ex = assertThrows(
+                NotFoundException.class,
+                () -> userStorage.updateUser(userBuilder.id(-1L).build())
+        );
+        assertEquals("Пользователь с id -1 не найден", ex.getMessage());
+
+        ex = assertThrows(
+                NotFoundException.class,
+                () -> userStorage.updateUser(userBuilder.id(999L).build())
+        );
+        assertEquals("Пользователь с id 999 не найден", ex.getMessage());
     }
 
     @Test
-    void addRegularUser() throws Exception {
-        user = userBuilder.build();
-        User userAdded = userBuilder.id(1).name("Login").build();
-        String json = mapper.writeValueAsString(user);
-        String jsonAdded = mapper.writeValueAsString(userAdded);
-
-        when(service.addUser(user)).thenReturn(userAdded);
-        this.mockMvc.perform(post(url)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andDo(print())
-                .andExpect(status().isCreated())
-                .andExpect(content().json(jsonAdded));
+    public void testAddFilm() {
+        Film film = filmBuilder.build();
+        Film filmAdded = filmStorage.addFilm(film);
+        assertThat(filmAdded)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", 1L);
     }
 
     @Test
-    void addNewbornUser() throws Exception {
-        user = userBuilder.birthday(LocalDate.now()).build();
-        User userAdded = userBuilder.id(1).name("Login").birthday(LocalDate.now()).build();
-        String json = mapper.writeValueAsString(user);
-        String jsonAdded = mapper.writeValueAsString(userAdded);
+    public void testFindFilmById() {
+        Film film = filmBuilder.build();
+        Film filmAdded = filmStorage.addFilm(film);
+        Film filmFound = filmStorage.findFilmById(filmAdded.getId());
+        assertThat(filmFound)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", 1L)
+                .hasFieldOrPropertyWithValue("mpa", mpaBuilder.name("G").build());
+        //.isEqualTo(filmAdded);
 
-        when(service.addUser(user)).thenReturn(userAdded);
-        this.mockMvc.perform(post(url)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andDo(print())
-                .andExpect(status().isCreated())
-                .andExpect(content().json(jsonAdded));
+        NotFoundException ex = assertThrows(
+                NotFoundException.class,
+                () -> filmStorage.findFilmById(-1L)
+        );
+        assertEquals("Фильм с id -1 не найден", ex.getMessage());
+
+        ex = assertThrows(
+                NotFoundException.class,
+                () -> filmStorage.findFilmById(999L)
+        );
+        assertEquals("Фильм с id 999 не найден", ex.getMessage());
     }
 
     @Test
-    void addUserFailLogin() throws Exception {
-        user = userBuilder.login("lo gin").build();
-        String json = mapper.writeValueAsString(user);
+    public void testListFilms() {
+        List<Film> films = filmStorage.listFilms();
+        assertThat(films)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
 
-        when(service.addUser(user)).thenReturn(user);
-        this.mockMvc.perform(post(url)
-                        .contentType(MediaType.APPLICATION_JSON_UTF8)
-                        .content(json))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(mvcResult ->
-                        mvcResult.getResolvedException().getMessage().equals("Логин содержит пробелы"));
-
-        user = userBuilder.login("").build();
-        json = mapper.writeValueAsString(user);
-        this.mockMvc.perform(post(url)
-                        .contentType(MediaType.APPLICATION_JSON_UTF8)
-                        .content(json))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(mvcResult ->
-                        mvcResult.getResolvedException().getMessage().equals("Логин не может быть пустым"));
+        Film film = filmBuilder.build();
+        filmStorage.addFilm(film);
+        films = filmStorage.listFilms();
+        assertNotNull(films);
+        assertEquals(films.size(), 1);
+        assertEquals(films.get(0).getId(), 1);
     }
 
     @Test
-    void addUserFailEmail() throws Exception {
-        user = userBuilder.email("").build();
-        String json = mapper.writeValueAsString(user);
+    public void testUpdateFilm() {
+        Film film = filmBuilder.build();
+        filmStorage.addFilm(film);
+        Film filmToUpdate = filmBuilder.id(1L).name("Film name Updated").build();
+        Film filmUpdated = filmStorage.updateFilm(filmToUpdate);
+        assertThat(filmUpdated)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", 1L)
+                .hasFieldOrPropertyWithValue("name", "Film name Updated");
 
-        when(service.addUser(user)).thenReturn(user);
-        this.mockMvc.perform(post(url)
-                        .contentType(MediaType.APPLICATION_JSON_UTF8)
-                        .content(json))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(mvcResult ->
-                        mvcResult.getResolvedException().getMessage().equals("E-mail не может быть пустым"));
+        NotFoundException ex = assertThrows(
+                NotFoundException.class,
+                () -> filmStorage.updateFilm(filmBuilder.id(-1L).build())
+        );
+        assertEquals("Фильм с id -1 не найден", ex.getMessage());
 
-        user = userBuilder.email("email@").build();
-        json = mapper.writeValueAsString(user);
-        this.mockMvc.perform(post(url)
-                        .contentType(MediaType.APPLICATION_JSON_UTF8)
-                        .content(json))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(mvcResult ->
-                        mvcResult.getResolvedException().getMessage().equals("Введен некорректный e-mail"));
+        ex = assertThrows(
+                NotFoundException.class,
+                () -> filmStorage.updateFilm(filmBuilder.id(999L).build())
+        );
+        assertEquals("Фильм с id 999 не найден", ex.getMessage());
     }
 
     @Test
-    void addUserFailBirthday() throws Exception {
-        user = userBuilder.birthday(null).build();
-        String json = mapper.writeValueAsString(user);
-        System.out.println(json);
+    public void testListTopFilms() {
+        List<Film> topFilms = filmStorage.listTopFilms(10);
+        assertThat(topFilms)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
 
-        this.mockMvc.perform(post(url)
-                        .contentType(MediaType.APPLICATION_JSON_UTF8)
-                        .content(json))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(mvcResult ->
-                        mvcResult.getResolvedException().getMessage().equals("Дата рождения не может быть пустой"));
+        filmStorage.addFilm(filmBuilder.build());
+        filmStorage.addFilm(filmBuilder.build());
+        userStorage.addUser(userBuilder.build());
 
-        user = userBuilder.birthday(LocalDate.now().plusDays(1)).build();
-        json = mapper.writeValueAsString(user);
-        this.mockMvc.perform(post(url)
-                        .contentType(MediaType.APPLICATION_JSON_UTF8)
-                        .content(json))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(mvcResult ->
-                        mvcResult.getResolvedException().getMessage().equals("Дата рождения не может быть из будущего"));
+        topFilms = filmStorage.listTopFilms(1);
+        assertNotNull(topFilms);
+        assertEquals(topFilms.size(), 1);
+        assertEquals(topFilms.get(0).getId(), 1);
+
+        filmStorage.addLike(2, 1);
+        topFilms = filmStorage.listTopFilms(2);
+        assertNotNull(topFilms);
+        assertEquals(topFilms.size(), 2);
+        assertEquals(topFilms.get(0).getId(), 2);
     }
 
     @Test
-    void updateUserExistingId() throws Exception {
-        user = userBuilder.id(1).name("Name").build();
-        String json = mapper.writeValueAsString(user);
+    public void testAddGenreToFilm() {
+        Film film = filmBuilder.build();
+        filmStorage.addFilm(film);
+        filmStorage.addGenreToFilm(1, 1);
 
-        when(service.updateUser(user)).thenReturn(user);
-        this.mockMvc.perform(put(url)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().json(json));
+        List<Genre> genreId = genreDao.getGenresByFilm(1);
+        assertNotNull(genreId);
+        assertEquals(genreId.size(), 1);
+        assertEquals(genreId.get(0).getId(), 1);
+
+        filmStorage.addGenreToFilm(1, 2);
+        genreId = genreDao.getGenresByFilm(1);
+        assertNotNull(genreId);
+        assertEquals(genreId.size(), 2);
+        assertEquals(genreId.get(0).getId(), 1);
     }
 
     @Test
-    void updateUserNotExistingId() throws Exception {
-        user = userBuilder.id(0).name("Name").build();
-        String json = mapper.writeValueAsString(user);
+    public void testDeleteGenreFromFilm() {
+        Film film = filmBuilder.build();
+        filmStorage.addFilm(film);
+        filmStorage.addGenreToFilm(1, 1);
+        filmStorage.addGenreToFilm(1, 2);
 
-        when(service.updateUser(user)).thenThrow(new NotFoundException("Отсутствует id"));
-        this.mockMvc.perform(put(url)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andDo(print())
-                .andExpect(status().isNotFound())
-                .andExpect(mvcResult ->
-                        mvcResult.getResolvedException().getMessage().equals("Отсутствует id"));
+        filmStorage.deleteGenreFromFilm(1, 2);
 
-        user = userBuilder.id(1).build();
-        json = mapper.writeValueAsString(user);
+        List<Genre> genres = genreDao.getGenresByFilm(1);
+        assertNotNull(genres);
+        assertEquals(genres.size(), 1);
+        assertEquals(genres.get(0).getId(), 1);
 
-        when(service.updateUser(user)).thenThrow(new NotFoundException("Пользователь с id 1 не найден"));
-        this.mockMvc.perform(put(url)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andDo(print())
-                .andExpect(status().isNotFound())
-                .andExpect(mvcResult ->
-                        mvcResult.getResolvedException().getMessage().equals("Пользователь с id 1 не найден"));
+        filmStorage.deleteGenreFromFilm(1, 1);
+
+        genres = genreDao.getGenresByFilm(1);
+        assertThat(genres)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
     }
 
     @Test
-    void shouldReturnEmptyListFriends() throws Exception {
-        when(service.listFriends(1)).thenReturn(Collections.EMPTY_LIST);
-        this.mockMvc
-                .perform(get(url + "/1/friends"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(0)));
+    public void testClearGenresFromFilm() {
+        Film film = filmBuilder.build();
+        filmStorage.addFilm(film);
+        filmStorage.addGenreToFilm(1, 1);
+        filmStorage.addGenreToFilm(1, 2);
+
+        filmStorage.clearGenresFromFilm(1);
+
+        List<Genre> genreId = genreDao.getGenresByFilm(1);
+        assertThat(genreId)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
     }
 
     @Test
-    void shouldReturnSingleListFriends() throws Exception {
-        when(service.listFriends(1)).thenReturn(List.of(
-                userBuilder.id(2).login("Login2").email("e2@mail.ru").name("name2").build()));
-        mockMvc.perform(get(url + "/1/friends"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()", is(1)))
-                .andExpect(jsonPath("$[0].id", is(2)));
+    public void testAddFriend() {
+        User user = userBuilder.build();
+        userStorage.addUser(user);
+        User friend = userBuilder.name("friend").build();
+        userStorage.addUser(friend);
+
+        friendshipDao.addFriend(1, 2);
+        List<Long> friends = friendshipDao.getFriendsByUser(1);
+        assertNotNull(friends);
+        assertEquals(friends.size(), 1);
+        assertEquals(friends.get(0), 2);
     }
 
     @Test
-    void listFriendsNotExistingId() throws Exception {
-        when(service.listFriends(1)).thenThrow(new NotFoundException("Пользователь с id 1 не найден"));
-        this.mockMvc
-                .perform(get(url + "/1/friends"))
-                .andDo(print())
-                .andExpect(status().isNotFound())
-                .andExpect(mvcResult ->
-                        mvcResult.getResolvedException().getMessage().equals("Пользователь с id 1 не найден"));
+    public void testGetFriendsByUser() {
+        User user = userBuilder.build();
+        userStorage.addUser(user);
+        User friend = userBuilder.name("friend").build();
+        userStorage.addUser(friend);
+
+        List<Long> friends = friendshipDao.getFriendsByUser(1);
+        assertThat(friends)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
+
+        friendshipDao.addFriend(1, 2);
+        friends = friendshipDao.getFriendsByUser(1);
+        assertNotNull(friends);
+        assertEquals(friends.size(), 1);
+        assertEquals(friends.get(0), 2);
     }
 
     @Test
-    void listFriendsNotValidId() throws Exception {
-        this.mockMvc
-                .perform(get(url + "/abc/friends"))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(mvcResult ->
-                        mvcResult.getResolvedException().getMessage().equals("Переменная id: abc должна быть long."));
+    public void testUpdateFriend() {
+        User user = userBuilder.build();
+        userStorage.addUser(user);
+        User friend = userBuilder.name("friend").build();
+        userStorage.addUser(friend);
+        friendshipDao.addFriend(1, 2);
+
+        friendshipDao.updateFriend(2, 1, true);
+        List<Long> friends = friendshipDao.getFriendsByUser(2);
+        assertNotNull(friends);
+        assertEquals(friends.size(), 1);
+        assertEquals(friends.get(0), 1);
     }
 
     @Test
-    void shouldReturnEmptyListCommonFriends() throws Exception {
-        when(service.listCommonFriends(1, 2)).thenReturn(Collections.EMPTY_LIST);
-        this.mockMvc
-                .perform(get(url + "/1/friends/common/2"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(0)));
+    public void testDeleteFriend() {
+        User user = userBuilder.build();
+        userStorage.addUser(user);
+        User friend = userBuilder.name("friend").build();
+        userStorage.addUser(friend);
+        friendshipDao.addFriend(1, 2);
+        friendshipDao.deleteFriend(2, 1);
+
+        List<Long> friends = friendshipDao.getFriendsByUser(1);
+        assertThat(friends)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
     }
 
     @Test
-    void shouldReturnSingleListCommonFriends() throws Exception {
-        when(service.listCommonFriends(1, 2)).thenReturn(List.of(
-                userBuilder.id(3).login("Login3").email("e3@mail.ru").name("name3").build()));
-        mockMvc.perform(get(url + "/1/friends/common/2"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()", is(1)))
-                .andExpect(jsonPath("$[0].id", is(3)));
+    public void testAddLike() {
+        Film film = filmBuilder.build();
+        filmStorage.addFilm(film);
+        User user = userBuilder.build();
+        userStorage.addUser(user);
+
+        filmStorage.addLike(1, 1);
+        List<Long> likes = filmStorage.getLikesByFilm(1);
+        assertNotNull(likes);
+        assertEquals(likes.size(), 1);
+        assertEquals(likes.get(0), 1);
     }
 
     @Test
-    void listCommonFriendsNullId() throws Exception {
-        this.mockMvc
-                .perform(get(url + "//friends/common/"))
-                .andDo(print())
-                .andExpect(status().isNotFound())
-                .andExpect(mvcResult ->
-                        mvcResult.getResolvedException().getMessage().equals("Неизвестный запрос."));
+    public void testGetLikesByFilm() {
+        Film film = filmBuilder.build();
+        filmStorage.addFilm(film);
+        List<Long> likes = filmStorage.getLikesByFilm(1);
+        assertThat(likes)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
     }
 
     @Test
-    void shouldFindUserById() throws Exception {
-        user = userBuilder.id(1).name("Login").build();
-        String json = mapper.writeValueAsString(user);
+    public void testDeleteLike() {
+        Film film = filmBuilder.build();
+        filmStorage.addFilm(film);
+        User user = userBuilder.build();
+        userStorage.addUser(user);
+        userStorage.addUser(user);
+        filmStorage.addLike(1, 1);
+        filmStorage.addLike(1, 2);
 
-        when(service.findUserById(1)).thenReturn(user);
-        mockMvc.perform(get(url + "/1"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().json(json));
+        filmStorage.deleteLike(1, 2);
+        List<Long> likes = filmStorage.getLikesByFilm(1);
+        assertNotNull(likes);
+        assertEquals(likes.size(), 1);
+        assertEquals(likes.get(0), 1);
+
+        filmStorage.deleteLike(1, 1);
+        likes = filmStorage.getLikesByFilm(1);
+        assertThat(likes)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
     }
 
     @Test
-    void findUserByIdNotExistingId() throws Exception {
-        when(service.findUserById(1)).thenThrow(new NotFoundException("Пользователь с id 1 не найден"));
-        mockMvc.perform(get(url + "/1"))
-                .andDo(print())
-                .andExpect(status().isNotFound())
-                .andExpect(mvcResult ->
-                        mvcResult.getResolvedException().getMessage().equals("Пользователь с id 1 не найден"));
+    public void testGetMpas() {
+        List<Mpa> mpas = mpaDao.getMpas();
+        assertNotNull(mpas);
+        assertEquals(mpas.size(), 5);
+        assertThat(mpas.get(0))
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", 1)
+                .hasFieldOrPropertyWithValue("name", "G");
     }
 
     @Test
-    void shouldAddFriend() throws Exception {
-        when(service.addFriend(1, 2)).thenReturn(List.of(2L));
-        mockMvc.perform(put(url + "/1/friends/2"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()", is(1)))
-                .andExpect(jsonPath("$[0]", is(2)));
+    public void testFindMpaById() {
+        Mpa mpa = mpaDao.findMpaById(1);
+        assertThat(mpa)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", 1)
+                .hasFieldOrPropertyWithValue("name", "G")
+                .hasFieldOrPropertyWithValue("description", "У фильма нет возрастных ограничений");
+
+        NotFoundException ex = assertThrows(
+                NotFoundException.class,
+                () -> mpaDao.findMpaById(-1)
+        );
+        assertEquals("Mpa с id -1 не найден", ex.getMessage());
+
+        ex = assertThrows(
+                NotFoundException.class,
+                () -> mpaDao.findMpaById(999)
+        );
+        assertEquals("Mpa с id 999 не найден", ex.getMessage());
     }
 
     @Test
-    void shouldDeleteFriend() throws Exception {
-        when(service.deleteFriend(1, 2)).thenReturn(Collections.EMPTY_LIST);
-        mockMvc.perform(delete(url + "/1/friends/2"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()", is(0)));
+    public void testFindGenreById() {
+        Genre genre = genreDao.findGenreById(1);
+        assertThat(genre)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", 1)
+                .hasFieldOrPropertyWithValue("name", "Комедия");
+
+        NotFoundException ex = assertThrows(
+                NotFoundException.class,
+                () -> genreDao.findGenreById(-1)
+        );
+        assertEquals("Жанр с id -1 не найден", ex.getMessage());
+
+        ex = assertThrows(
+                NotFoundException.class,
+                () -> genreDao.findGenreById(999)
+        );
+        assertEquals("Жанр с id 999 не найден", ex.getMessage());
+    }
+
+    @Test
+    public void testGetGenres() {
+        List<Genre> genres = genreDao.getGenres();
+        assertNotNull(genres);
+        assertEquals(genres.size(), 6);
+        assertThat(genres.get(0))
+                .hasFieldOrPropertyWithValue("id", 1)
+                .hasFieldOrPropertyWithValue("name", "Комедия");
+    }
+
+    @Test
+    public void testGetGenresByFilm() {
+        Film film = filmBuilder.build();
+        filmStorage.addFilm(film);
+        List<Genre> genres = genreDao.getGenresByFilm(1);
+        assertThat(genres)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
+    }
+
+    @Test
+    public void testGetGenresByFilmList() {
+        Film film = filmBuilder.build();
+        filmStorage.addFilm(film);
+        List<Long> idList = new ArrayList<>();
+        idList.add(1L);
+        Map<Long, Set<Genre>> genresByFilmList = genreDao.getGenresByFilmList(idList);
+        assertThat(genresByFilmList)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_MAP);
+
+        filmStorage.addFilm(film);
+        filmStorage.addGenreToFilm(1L, 1);
+
+        genresByFilmList = genreDao.getGenresByFilmList(idList);
+        assertNotNull(genresByFilmList);
+        assertEquals(genresByFilmList.get(1L).size(), 1);
+
+        filmStorage.addGenreToFilm(1L, 2);
+        genresByFilmList = genreDao.getGenresByFilmList(idList);
+        assertNotNull(genresByFilmList);
+        assertEquals(genresByFilmList.get(1L).size(), 2);
+
+        filmStorage.addFilm(film);
+        filmStorage.addGenreToFilm(2L, 1);
+        idList.add(2L);
+        genresByFilmList = genreDao.getGenresByFilmList(idList);
+        assertNotNull(genresByFilmList);
+        assertEquals(genresByFilmList.get(2L).size(), 1);
+    }
+
+    @Test
+    public void testServiceGetAllFilms() {
+        Film film = filmBuilder.build();
+
+        List<Film> films = filmService.listFilms();
+        assertThat(films)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
+
+        filmService.addFilm(film);
+        films = filmService.listFilms();
+        assertNotNull(films);
+        assertEquals(films.size(), 1);
+
+        filmStorage.addGenreToFilm(1L, 1);
+        films = filmService.listFilms();
+        assertNotNull(films);
+        assertEquals(films.size(), 1);
+        assertEquals(films.get(0).getGenres().get(0).getName(), "Комедия");
+
+        filmStorage.addGenreToFilm(1L, 2);
+        films = filmService.listFilms();
+        assertNotNull(films);
+        assertEquals(films.size(), 1);
+        assertEquals(films.get(0).getGenres().get(0).getName(), "Комедия");
+
+        filmService.addFilm(film);
+        films = filmService.listFilms();
+        assertNotNull(films);
+        assertEquals(films.size(), 2);
+        assertEquals(films.get(0).getGenres().get(0).getName(), "Комедия");
     }
 }
