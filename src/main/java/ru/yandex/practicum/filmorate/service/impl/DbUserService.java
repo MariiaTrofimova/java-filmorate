@@ -7,8 +7,8 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Feed;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.service.FeedService;
+import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.FriendshipDao;
@@ -33,7 +33,7 @@ public class DbUserService implements UserService {
 
 
     public DbUserService(@Qualifier("UserDbStorage") UserStorage storage,
-                         FriendshipDao friendshipDao, FilmStorage filmStorage, GenreService genreService,FeedService feedService) {
+                         FriendshipDao friendshipDao, FilmStorage filmStorage, GenreService genreService, FeedService feedService) {
         this.storage = storage;
         this.friendshipDao = friendshipDao;
         this.feedService = feedService;
