@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.List;
+import java.util.Map;
 
 public interface FilmStorage {
     List<Film> listFilms();
@@ -48,4 +49,6 @@ public interface FilmStorage {
     List<Long> findFilmIdsByDirectorQuery(String query);
 
     List<Long> findCommonFilmIds(Long userId, Long friendId);
+
+    Map<Long, List<Long>> getUserIdsLikedFilmIds();
 }

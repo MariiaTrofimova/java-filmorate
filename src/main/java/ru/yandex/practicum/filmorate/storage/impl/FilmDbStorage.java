@@ -18,8 +18,10 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository("FilmDbStorage")
 @Slf4j
@@ -170,7 +172,7 @@ public class FilmDbStorage implements FilmStorage {
                 "from likes group by film_id order by likes_qty desc) " +
                 "as top on f.film_id = top.film_id " +
                 "where likes_qty > 0";
-        return jdbcTemplate.query(sql,(rs, rowNum) -> mapRowToFilm(rs));
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs));
     }
 
     @Override
@@ -211,6 +213,23 @@ public class FilmDbStorage implements FilmStorage {
                 "where user_id in (?, ?) " +
                 "group by film_id having count(user_id) = 2 ";
         return jdbcTemplate.queryForList(sql, Long.class, userId, friendId);
+    }
+
+    @Override
+    public Map<Long, List<Long>> getUserIdsLikedFilmIds() {
+        String sql = "select user_id, film_id from likes";
+        final Map<Long, List<Long>> userIdsFilmsIds = new HashMap<>();
+
+        jdbcTemplate.query(sql,
+                rs -> {
+                    long userId = rs.getLong("user_id");
+                    long filmId = rs.getLong("film_id");
+                    List<Long> filmIds = userIdsFilmsIds.getOrDefault(userId, new ArrayList<>());
+                    filmIds.add(filmId);
+                    userIdsFilmsIds.put(userId, filmIds);
+                });
+        return userIdsFilmsIds;
+
     }
 
     @Override

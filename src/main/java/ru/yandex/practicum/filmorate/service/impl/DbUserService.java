@@ -6,13 +6,13 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.FriendshipDao;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -25,11 +25,14 @@ public class DbUserService implements UserService {
 
     private final FilmStorage filmStorage;
 
+    private final GenreService genreService;
+
     public DbUserService(@Qualifier("UserDbStorage") UserStorage storage,
-                         FriendshipDao friendshipDao, FilmStorage filmStorage) {
+                         FriendshipDao friendshipDao, FilmStorage filmStorage, GenreService genreService) {
         this.storage = storage;
         this.friendshipDao = friendshipDao;
         this.filmStorage = filmStorage;
+        this.genreService = genreService;
     }
 
     @Override
@@ -115,45 +118,33 @@ public class DbUserService implements UserService {
 
     @Override
     public List<Film> recommendations(long userId) {
-        List<Film> likeFilm = filmStorage.getFilmsWithLikes();
-        Map<Long, List<Film>> likeAndUser = new HashMap<>();
-        Map<Long, Long> matchesLike = new HashMap<>();
-        int maxMatches = 0;
-        List<Film> likeUser;
-        Long id = null;
-        for (Film film : likeFilm) {
-            for (Long user : film.getLikes()) {
-                if (likeAndUser.containsKey(user)) {
-                    likeAndUser.get(user).add(film);
-                } else {
-                    List<Film> likedFilms = new ArrayList<>();
-                    likedFilms.add(film);
-                    likeAndUser.put(user, likedFilms);
-                }
-            }
+        Map<Long, List<Long>> usersLikes = filmStorage.getUserIdsLikedFilmIds();
+        if (usersLikes.isEmpty()) {
+            return Collections.emptyList();
         }
-        likeUser = likeAndUser.get(userId);
+        List<Long> userLikes = usersLikes.getOrDefault(userId, Collections.emptyList());
+        usersLikes.remove(userId);
 
-        for (Map.Entry<Long, List<Film>> map : likeAndUser.entrySet()) {
-            if (matchesLike.containsKey(map.getKey())) {
-                matchesLike.put(map.getKey(), null);
-            }
-            Long matches = matchesLike.get(map.getKey());
-            likeUser.stream()
-                    .filter(film -> map.getValue().contains(film))
-                    .forEach(film -> matchesLike.put(map.getKey(), matches + 1));
-        }
-        for (Map.Entry<Long, Long> map : matchesLike.entrySet()) {
-            if (maxMatches < map.getValue()) {
-                maxMatches = Math.toIntExact(map.getValue());
-                id = map.getKey();
-            }
-            if (maxMatches == 0) {
-                return new ArrayList<>();
+        long matchesMax = 0;
+        long userIdMax = -1L;
+        for (Map.Entry<Long, List<Long>> userOtherLikes : usersLikes.entrySet()) {
+            long matches = userOtherLikes.getValue().stream()
+                    .filter(userLikes::contains)
+                    .count();
+            if (matches > matchesMax) {
+                matchesMax = matches;
+                userIdMax = userOtherLikes.getKey();
             }
         }
-        return likeAndUser.get(id).stream()
-                .filter(film -> !likeUser.contains(film))
+        if (matchesMax == 0) {
+            return Collections.emptyList();
+        }
+
+        List<Long> filmIds = usersLikes.getOrDefault(userIdMax, Collections.emptyList()).stream()
+                .filter(film -> !userLikes.contains(film))
                 .collect(Collectors.toList());
+        //return filmStorage.listTopFilms(filmIds);
+        return genreService.getFilmsWithGenres(
+                filmStorage.listTopFilms(filmIds));
     }
 }

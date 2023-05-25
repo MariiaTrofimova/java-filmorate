@@ -6,11 +6,12 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.service.DirectorService;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.DirectorDao;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.GenreDao;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,32 +19,34 @@ import java.util.stream.Collectors;
 @Service("DbFilmService")
 public class DbFilmService implements FilmService {
     private final FilmStorage storage;
-    private final GenreDao genreDao;
     private final DirectorDao directorDao;
     private final UserService userService;
+    private final GenreService genreService;
+    private final DirectorService directorService;
 
     @Autowired
     public DbFilmService(@Qualifier("FilmDbStorage") FilmStorage storage,
-                         GenreDao genreDao,
                          DirectorDao directorDao,
-                         @Qualifier("DbUserService") UserService userService) {
+                         @Qualifier("DbUserService") UserService userService,
+                         GenreService genreService, DirectorService directorService) {
         this.storage = storage;
-        this.genreDao = genreDao;
         this.directorDao = directorDao;
         this.userService = userService;
+        this.genreService = genreService;
+        this.directorService = directorService;
     }
 
     @Override
     public List<Film> listFilms() {
         List<Film> films = storage.listFilms();
-        return getFilmsWithDirectors(getFilmsWithGenres(films));
+        return directorService.getFilmsWithDirectors(genreService.getFilmsWithGenres(films));
     }
 
     @Override
     public List<Film> listTopFilms(int count) {
         List<Film> topFilms = storage.listTopFilms(count);
-        topFilms = getFilmsWithGenres(topFilms);
-        return getFilmsWithDirectors(topFilms);
+        topFilms = genreService.getFilmsWithGenres(topFilms);
+        return directorService.getFilmsWithDirectors(topFilms);
     }
 
     @Override
@@ -56,7 +59,7 @@ public class DbFilmService implements FilmService {
         if (year.isPresent()) {
             if (genreId.isEmpty()) {
                 topFilms = storage.listTopFilmsByYear(count, year.get());
-                topFilms = getFilmsWithGenres(topFilms);
+                topFilms = genreService.getFilmsWithGenres(topFilms);
             } else {
                 topFilms = storage.listTopFilmsByYear(year.get());
             }
@@ -65,13 +68,13 @@ public class DbFilmService implements FilmService {
         }
 
         if (genreId.isPresent()) {
-            Genre genre = genreDao.findGenreById(genreId.get());
-            topFilms = getFilmsWithGenres(topFilms).stream()
+            Genre genre = genreService.findGenreById(genreId.get());
+            topFilms = genreService.getFilmsWithGenres(topFilms).stream()
                     .filter(film -> film.getGenres().contains(genre))
                     .limit(count)
                     .collect(Collectors.toList());
         }
-        return getFilmsWithDirectors(topFilms);
+        return directorService.getFilmsWithDirectors(topFilms);
     }
 
     @Override
@@ -85,7 +88,7 @@ public class DbFilmService implements FilmService {
         }
         filmIds = filmIds.stream().distinct().collect(Collectors.toList());
         List<Film> topFilms = storage.listTopFilms(filmIds);
-        return getFilmsWithDirectors(getFilmsWithGenres(topFilms));
+        return directorService.getFilmsWithDirectors(genreService.getFilmsWithGenres(topFilms));
     }
 
     @Override
@@ -101,7 +104,7 @@ public class DbFilmService implements FilmService {
         Film film = storage.findFilmById(id);
         directorDao.getDirectorsByFilm(film.getId())
                 .forEach(film::addDirector);
-        genreDao.getGenresByFilm(film.getId())
+        genreService.getGenresByFilm(film.getId())
                 .forEach(film::addGenre);
         return film;
     }
@@ -137,20 +140,20 @@ public class DbFilmService implements FilmService {
         Director director = directorDao.findDirectorById(directorId);
         if (sortParam.isPresent()) {
             if (sortParam.get().equals("year")) {
-                return getFilmsWithDirectors(listFilms())
+                return directorService.getFilmsWithDirectors(listFilms())
                         .stream()
                         .filter(film -> film.getDirectors().contains(director))
                         .sorted(Comparator.comparing((Film film) -> film.getReleaseDate().getYear()))
                         .collect(Collectors.toList());
             } else if (sortParam.get().equals("likes")) {
-                List<Film> topFilms = getFilmsWithGenres(storage.listTopFilms());
-                return getFilmsWithDirectors(topFilms)
+                List<Film> topFilms = genreService.getFilmsWithGenres(storage.listTopFilms());
+                return directorService.getFilmsWithDirectors(topFilms)
                         .stream()
                         .filter(film -> film.getDirectors().contains(director))
                         .collect(Collectors.toList());
             }
         }
-        return getFilmsWithDirectors(listFilms())
+        return directorService.getFilmsWithDirectors(listFilms())
                 .stream()
                 .filter(film -> film.getDirectors().contains(director))
                 .collect(Collectors.toList());
@@ -159,25 +162,5 @@ public class DbFilmService implements FilmService {
     @Override
     public boolean deleteFilm(long id) {
         return storage.deleteFilm(id);
-    }
-
-    private List<Film> getFilmsWithGenres(List<Film> films) {
-        List<Long> filmIds = films.stream()
-                .map(Film::getId).collect(Collectors.toList());
-        Map<Long, Set<Genre>> genresByFilmList = genreDao.getGenresByFilmList(filmIds);
-        return films.stream()
-                .peek(film -> genresByFilmList.getOrDefault(film.getId(), new HashSet<>())
-                        .forEach(film::addGenre))
-                .collect(Collectors.toList());
-    }
-
-    private List<Film> getFilmsWithDirectors(List<Film> films) {
-        List<Long> filmIds = films.stream()
-                .map(Film::getId).collect(Collectors.toList());
-        Map<Long, Set<Director>> directorsByFilmList = directorDao.getDirectorsByFilmList(filmIds);
-        return films.stream()
-                .peek(film -> directorsByFilmList.getOrDefault(film.getId(), new HashSet<>())
-                        .forEach(film::addDirector))
-                .collect(Collectors.toList());
     }
 }
