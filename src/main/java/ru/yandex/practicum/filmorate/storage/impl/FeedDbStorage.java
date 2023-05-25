@@ -21,14 +21,14 @@ public class FeedDbStorage implements FeedStorage {
     private final FeedMapper feedRowMapper;
 
     @Override
-    public List<Feed> findByUserId(long id) {
+    public List<Feed> findByUserId(Long id) {
         String sql = "SELECT * FROM feed WHERE id_user = ? ORDER BY timestamp ASC";
 
         return jdbcTemplate.query(sql, feedRowMapper, id);
     }
 
     @Override
-    public void addFeed(long idEntity, long idUser, long timestamp, EventType eventType, Operation operation) {
+    public void addFeed(Long idEntity, Long idUser, Long timestamp, EventType eventType, Operation operation) {
         String sql = "INSERT INTO feed(id_entity, id_user, timestamp, event_type, operation) " +
                 "VALUES (?, ?, ?, ?, ?)";
 
@@ -44,8 +44,8 @@ public class FeedDbStorage implements FeedStorage {
         public Feed mapRow(ResultSet rs, int rowNum) throws SQLException {
             return Feed.builder()
                     .eventId(rs.getLong("id_event"))
-                    .entityId(rs.getInt("id_entity"))
-                    .userId(rs.getInt("id_user"))
+                    .entityId(rs.getLong("id_entity"))
+                    .userId(rs.getLong("id_user"))
                     .timestamp(rs.getLong("timestamp"))
                     .eventType(EventType.valueOf(rs.getString("event_type")))
                     .operation(Operation.valueOf(rs.getString("operation")))

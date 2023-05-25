@@ -7,7 +7,7 @@ import ru.yandex.practicum.filmorate.model.enums.Operation;
 import java.util.List;
 
 public interface FeedStorage {
-    List<Feed> findByUserId(long id);
+    List<Feed> findByUserId(Long id);
 
-    void addFeed(long idEntity, long idUser, long timestamp, EventType eventType, Operation operation);
+    void addFeed(Long idEntity, Long idUser, Long timestamp, EventType eventType, Operation operation);
 }

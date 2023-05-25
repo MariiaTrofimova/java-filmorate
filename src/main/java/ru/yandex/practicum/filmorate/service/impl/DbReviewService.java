@@ -65,14 +65,16 @@ public class DbReviewService implements ReviewService {
     public Review addReview(Review review) {
         userService.findUserById(review.getUserId());
         filmService.findFilmById(review.getFilmId());
+        review = reviewDao.addReview(review);
         feedService.add(review.getReviewId(), review.getUserId(), REVIEW, ADD);
-        return reviewDao.addReview(review);
+        return review;
     }
 
     @Override
     public Review updateReview(Review review) {
+        review = reviewDao.updateReview(review);
         feedService.add(review.getReviewId(), review.getUserId(), REVIEW, UPDATE);
-        return reviewDao.updateReview(review);
+        return review;
     }
 
     @Override

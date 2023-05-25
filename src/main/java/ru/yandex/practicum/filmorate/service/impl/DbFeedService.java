@@ -16,12 +16,12 @@ import java.util.List;
 public class DbFeedService implements FeedService {
     private final FeedStorage feedStorage;
 
-    public void add(long idEntity, long idUser, EventType eventType, Operation operation) {
-        long timestamp = Instant.now().toEpochMilli();
+    public void add(Long idEntity, Long idUser, EventType eventType, Operation operation) {
+        Long timestamp = Instant.now().toEpochMilli();
         feedStorage.addFeed(idEntity, idUser, timestamp, eventType, operation);
     }
 
-    public List<Feed> getByUserId(long id) {
+    public List<Feed> getByUserId(Long id) {
         return feedStorage.findByUserId(id);
     }
 }
