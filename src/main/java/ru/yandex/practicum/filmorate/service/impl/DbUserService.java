@@ -4,12 +4,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.FriendshipDao;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service("DbUserService")
@@ -18,9 +23,13 @@ public class DbUserService implements UserService {
     private final UserStorage storage;
     private final FriendshipDao friendshipDao;
 
-    public DbUserService(@Qualifier("UserDbStorage") UserStorage storage, FriendshipDao friendshipDao) {
+    private final FilmStorage filmStorage;
+
+    public DbUserService(@Qualifier("UserDbStorage") UserStorage storage,
+                         FriendshipDao friendshipDao, FilmStorage filmStorage) {
         this.storage = storage;
         this.friendshipDao = friendshipDao;
+        this.filmStorage = filmStorage;
     }
 
     @Override
@@ -102,5 +111,49 @@ public class DbUserService implements UserService {
             }
         }
         return friendshipDao.getFriendsByUser(id);
+    }
+
+    @Override
+    public List<Film> recommendations(long userId) {
+        List<Film> likeFilm = filmStorage.getFilmsWithLikes();
+        Map<Long, List<Film>> likeAndUser = new HashMap<>();
+        Map<Long, Long> matchesLike = new HashMap<>();
+        int maxMatches = 0;
+        List<Film> likeUser;
+        Long id = null;
+        for (Film film : likeFilm) {
+            for (Long user : film.getLikes()) {
+                if (likeAndUser.containsKey(user)) {
+                    likeAndUser.get(user).add(film);
+                } else {
+                    List<Film> likedFilms = new ArrayList<>();
+                    likedFilms.add(film);
+                    likeAndUser.put(user, likedFilms);
+                }
+            }
+        }
+        likeUser = likeAndUser.get(userId);
+
+        for (Map.Entry<Long, List<Film>> map : likeAndUser.entrySet()) {
+            if (matchesLike.containsKey(map.getKey())) {
+                matchesLike.put(map.getKey(), null);
+            }
+            Long matches = matchesLike.get(map.getKey());
+            likeUser.stream()
+                    .filter(film -> map.getValue().contains(film))
+                    .forEach(film -> matchesLike.put(map.getKey(), matches + 1));
+        }
+        for (Map.Entry<Long, Long> map : matchesLike.entrySet()) {
+            if (maxMatches < map.getValue()) {
+                maxMatches = Math.toIntExact(map.getValue());
+                id = map.getKey();
+            }
+            if (maxMatches == 0) {
+                return new ArrayList<>();
+            }
+        }
+        return likeAndUser.get(id).stream()
+                .filter(film -> !likeUser.contains(film))
+                .collect(Collectors.toList());
     }
 }

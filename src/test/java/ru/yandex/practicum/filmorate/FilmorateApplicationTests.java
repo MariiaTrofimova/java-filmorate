@@ -982,4 +982,28 @@ class FilmorateApplicationTests {
         assertEquals(1, reviewsWithUseful.size());
         assertEquals(1, reviewsWithUseful.get(1L));
     }
+
+    @Test
+    public void testGetFilmsWithLikes() {
+        List<Film> topFilms = filmStorage.getFilmsWithLikes();
+        assertThat(topFilms)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
+
+        filmStorage.addFilm(filmBuilder.build());
+        filmStorage.addFilm(filmBuilder.releaseDate(LocalDate.of(2001, 1, 1)).build());
+        userStorage.addUser(userBuilder.build());
+
+        topFilms = filmStorage.getFilmsWithLikes();
+        assertThat(topFilms)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
+
+        filmStorage.addLike(1L, 1L);
+
+        topFilms = filmStorage.getFilmsWithLikes();
+        assertNotNull(topFilms);
+        assertEquals(topFilms.size(), 1);
+        assertEquals(topFilms.get(0).getId(), 1);
+    }
 }

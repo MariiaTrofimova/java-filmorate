@@ -23,6 +23,8 @@ public interface FilmStorage {
 
     List<Film> listTopFilmsByYear(int year);
 
+    List<Film> getFilmsWithLikes();
+
     boolean deleteFilm(long id);
 
     boolean addGenreToFilm(long filmId, int genreId);

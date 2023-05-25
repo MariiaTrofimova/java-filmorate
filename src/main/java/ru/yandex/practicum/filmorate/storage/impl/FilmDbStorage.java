@@ -18,6 +18,7 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
 @Repository("FilmDbStorage")
@@ -157,6 +158,19 @@ public class FilmDbStorage implements FilmStorage {
                 "where (extract(year from release_date) = ?)" +
                 "order by top.likes_qty desc ";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), year);
+    }
+
+    @Override
+    public List<Film> getFilmsWithLikes() {
+        String sql = "select f.*, m.name as mpa_name " +
+                "from films as f " +
+                "join mpa as m on f.mpa_id = m.mpa_id " +
+                "left join " +
+                "(select film_id, COUNT(user_id) AS likes_qty " +
+                "from likes group by film_id order by likes_qty desc) " +
+                "as top on f.film_id = top.film_id " +
+                "where likes_qty > 0";
+        return jdbcTemplate.query(sql,(rs, rowNum) -> mapRowToFilm(rs));
     }
 
     @Override
