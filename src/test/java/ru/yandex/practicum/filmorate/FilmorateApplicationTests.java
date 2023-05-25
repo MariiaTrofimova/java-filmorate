@@ -36,17 +36,14 @@ class FilmorateApplicationTests {
     private final ReviewLikesDao reviewLikesDao;
 
     private final FilmService filmService;
-
+    private final LocalDate testReleaseDate = LocalDate.of(2000, 1, 1);
+    private final JdbcTemplate jdbcTemplate;
     User.UserBuilder userBuilder;
     Film.FilmBuilder filmBuilder;
     Genre.GenreBuilder genreBuilder;
     Mpa.MpaBuilder mpaBuilder;
     Director.DirectorBuilder directorBuilder;
     Review.ReviewBuilder reviewBuilder;
-
-    private final LocalDate testReleaseDate = LocalDate.of(2000, 1, 1);
-
-    private final JdbcTemplate jdbcTemplate;
 
     @BeforeEach
     public void setup() {

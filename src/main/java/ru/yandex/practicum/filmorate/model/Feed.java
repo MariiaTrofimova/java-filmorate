@@ -1,5 +1,7 @@
 package ru.yandex.practicum.filmorate.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
@@ -9,17 +11,18 @@ import javax.validation.constraints.NotEmpty;
 
 @Data
 @Builder
+@AllArgsConstructor
 public class Feed {
-    @NotEmpty
+
     private long eventId;
-    @NotEmpty
+
     private long entityId;
-    @NotEmpty
+
     private long userId;
-    @NotEmpty
+
     private long timestamp;
-    @NotEmpty
+
     private EventType eventType;
-    @NotEmpty
+
     private Operation operation;
 }

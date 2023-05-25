@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Feed;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
@@ -16,11 +17,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RestController
 @RequestMapping(value = "/users", produces = "application/json")
 public class UserController {
-
+    public final FeedService feedService;
     private final UserService service;
 
     @Autowired
-    public UserController(@Qualifier("DbUserService") UserService service) {
+    public UserController(FeedService feedService, @Qualifier("DbUserService") UserService service) {
+        this.feedService = feedService;
         this.service = service;
     }
 
@@ -69,8 +71,10 @@ public class UserController {
     public List<Long> deleteFriend(@PathVariable long id, @PathVariable long friendId) {
         return service.deleteFriend(id, friendId);
     }
+
     @GetMapping("/{id}/feed")
     public List<Feed> getFeed(@PathVariable long id) {
+        service.findUserById(id);
         return service.getFeedByUserId(id);
     }
 }
