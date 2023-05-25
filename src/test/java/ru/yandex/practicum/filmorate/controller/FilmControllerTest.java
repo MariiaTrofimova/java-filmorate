@@ -31,22 +31,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(FilmController.class)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class FilmControllerTest {
-    @Autowired
-    private MockMvc mockMvc;
-
     @MockBean
     @Qualifier("DbFilmService")
     private final FilmService service;
-
-    Film film;
-    String url = "/films";
     private final LocalDate testReleaseDate = LocalDate.of(2000, 1, 1);
     private final int duration = 90;
-
+    Film film;
+    String url = "/films";
     Film.FilmBuilder filmBuilder;
-
     ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
             .setDateFormat(new SimpleDateFormat("yyyy-MM-dd"));
+    @Autowired
+    private MockMvc mockMvc;
 
     @BeforeEach
     void setupBuilder() {

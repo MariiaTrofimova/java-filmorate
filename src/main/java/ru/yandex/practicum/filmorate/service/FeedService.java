@@ -8,5 +8,6 @@ import java.util.List;
 
 public interface FeedService {
     void add(Long idEntity, Long idUser, EventType eventType, Operation operation);
+
     List<Feed> getByUserId(Long id);
 }
