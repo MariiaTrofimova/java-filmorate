@@ -12,6 +12,7 @@ import org.springframework.test.jdbc.JdbcTestUtils;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.*;
 import ru.yandex.practicum.filmorate.storage.impl.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.impl.UserDbStorage;
@@ -36,6 +37,7 @@ class FilmorateApplicationTests {
     private final ReviewLikesDao reviewLikesDao;
 
     private final FilmService filmService;
+    private final UserService userService;
 
     User.UserBuilder userBuilder;
     Film.FilmBuilder filmBuilder;
@@ -981,5 +983,91 @@ class FilmorateApplicationTests {
         assertNotNull(reviewsWithUseful);
         assertEquals(1, reviewsWithUseful.size());
         assertEquals(1, reviewsWithUseful.get(1L));
+    }
+
+    @Test
+    public void testGetFilmsWithLikes() {
+        List<Film> topFilms = filmStorage.getFilmsWithLikes();
+        assertThat(topFilms)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
+
+        filmStorage.addFilm(filmBuilder.build());
+        filmStorage.addFilm(filmBuilder.releaseDate(LocalDate.of(2001, 1, 1)).build());
+        userStorage.addUser(userBuilder.build());
+
+        topFilms = filmStorage.getFilmsWithLikes();
+        assertThat(topFilms)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
+
+        filmStorage.addLike(1L, 1L);
+
+        topFilms = filmStorage.getFilmsWithLikes();
+        assertNotNull(topFilms);
+        assertEquals(topFilms.size(), 1);
+        assertEquals(topFilms.get(0).getId(), 1);
+    }
+
+    @Test
+    public void testRecommendations() {
+        List<Film> recommendations = userService.recommendations(1L);
+        assertThat(recommendations)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_LIST);
+
+        userStorage.addUser(userBuilder.build());
+        userStorage.addUser(userBuilder.build());
+        filmStorage.addFilm(filmBuilder.build());
+        filmStorage.addFilm(filmBuilder.build());
+        filmStorage.addFilm(filmBuilder.build());
+
+        filmStorage.addLike(1L, 1L);
+        filmStorage.addLike(1L, 2L);
+        filmStorage.addLike(2L, 2L);
+
+        recommendations = userService.recommendations(1L);
+        assertNotNull(recommendations);
+        assertEquals(1, recommendations.size());
+        assertEquals(2L, recommendations.get(0).getId());
+
+        filmStorage.addFilm(filmBuilder.build());
+        filmStorage.addLike(3L, 2L);
+
+        recommendations = userService.recommendations(1L);
+        assertNotNull(recommendations);
+        assertEquals(2, recommendations.size());
+        assertEquals(3L, recommendations.get(1).getId());
+    }
+
+    @Test
+    public void testGetUserIdsLikedFilmIds() {
+        Map<Long, List<Long>> usersWithLikedFilmIds = filmStorage.getUserIdsLikedFilmIds();
+        assertThat(usersWithLikedFilmIds)
+                .isNotNull()
+                .isEqualTo(Collections.EMPTY_MAP);
+
+        userStorage.addUser(userBuilder.build());
+        userStorage.addUser(userBuilder.build());
+        filmStorage.addFilm(filmBuilder.build());
+        filmStorage.addFilm(filmBuilder.build());
+        filmStorage.addFilm(filmBuilder.build());
+
+        filmStorage.addLike(1L, 1L);
+
+        usersWithLikedFilmIds = filmStorage.getUserIdsLikedFilmIds();
+        assertNotNull(usersWithLikedFilmIds);
+        assertEquals(1, usersWithLikedFilmIds.size());
+
+        filmStorage.addLike(1L, 2L);
+        usersWithLikedFilmIds = filmStorage.getUserIdsLikedFilmIds();
+        assertNotNull(usersWithLikedFilmIds);
+        assertEquals(2, usersWithLikedFilmIds.size());
+
+        filmStorage.addLike(2L, 2L);
+        usersWithLikedFilmIds = filmStorage.getUserIdsLikedFilmIds();
+        assertNotNull(usersWithLikedFilmIds);
+        assertEquals(2, usersWithLikedFilmIds.size());
+        assertEquals(2, usersWithLikedFilmIds.get(2L).size());
     }
 }
