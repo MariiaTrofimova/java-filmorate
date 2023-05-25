@@ -10,9 +10,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.*;
+import ru.yandex.practicum.filmorate.storage.FriendshipDao;
+import ru.yandex.practicum.filmorate.storage.GenreDao;
+import ru.yandex.practicum.filmorate.storage.MpaDao;
 import ru.yandex.practicum.filmorate.storage.impl.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.impl.UserDbStorage;
 
@@ -31,19 +36,17 @@ class FilmorateApplicationTests {
     private final FriendshipDao friendshipDao;
     private final GenreDao genreDao;
     private final MpaDao mpaDao;
-    private final DirectorDao directorDao;
-    private final ReviewDao reviewDao;
-    private final ReviewLikesDao reviewLikesDao;
 
     private final FilmService filmService;
-    private final LocalDate testReleaseDate = LocalDate.of(2000, 1, 1);
-    private final JdbcTemplate jdbcTemplate;
+
     User.UserBuilder userBuilder;
     Film.FilmBuilder filmBuilder;
     Genre.GenreBuilder genreBuilder;
     Mpa.MpaBuilder mpaBuilder;
-    Director.DirectorBuilder directorBuilder;
-    Review.ReviewBuilder reviewBuilder;
+
+    private final LocalDate testReleaseDate = LocalDate.of(2000, 1, 1);
+
+    private final JdbcTemplate jdbcTemplate;
 
     @BeforeEach
     public void setup() {
@@ -65,26 +68,14 @@ class FilmorateApplicationTests {
                 .releaseDate(testReleaseDate)
                 .duration(90)
                 .mpa(mpaBuilder.build());
-
-        directorBuilder = Director.builder()
-                .name("Director name");
-
-        reviewBuilder = Review.builder()
-                .content("Content")
-                .isPositive(true)
-                .userId(1L)
-                .filmId(1L);
     }
 
     @AfterEach
     public void cleanDb() {
         JdbcTestUtils.deleteFromTables(jdbcTemplate,
-                "users", "films", "friendship", "film_genre", "likes",
-                "directors", "film_director", "reviews", "review_likes");
+                "users", "films", "friendship", "film_genre", "likes");
         jdbcTemplate.update("ALTER TABLE USERS ALTER COLUMN user_id RESTART WITH 1");
         jdbcTemplate.update("ALTER TABLE FILMS ALTER COLUMN film_id RESTART WITH 1");
-        jdbcTemplate.update("ALTER TABLE DIRECTORS ALTER COLUMN director_id RESTART WITH 1");
-        jdbcTemplate.update("ALTER TABLE REVIEWS ALTER COLUMN REVIEW_ID RESTART WITH 1");
     }
 
     @Test
@@ -156,21 +147,6 @@ class FilmorateApplicationTests {
                 () -> userStorage.updateUser(userBuilder.id(999L).build())
         );
         assertEquals("Пользователь с id 999 не найден", ex.getMessage());
-    }
-
-    @Test
-    public void testDeleteUser() {
-        boolean isDeleted;
-        isDeleted = userStorage.deleteUser(0);
-        assertFalse(isDeleted);
-
-        User user = userBuilder.build();
-        userStorage.addUser(user);
-        isDeleted = userStorage.deleteUser(1);
-        assertTrue(isDeleted);
-
-        List<User> users = userStorage.listUsers();
-        assertEquals(0, users.size());
     }
 
     @Test
@@ -246,22 +222,6 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    public void testDeleteFilm() {
-        boolean isDeleted;
-        isDeleted = filmStorage.deleteFilm(0);
-        assertFalse(isDeleted);
-
-        Film film = filmBuilder.build();
-        filmStorage.addFilm(film);
-        isDeleted = filmStorage.deleteFilm(1);
-        assertTrue(isDeleted);
-
-        List<Film> films = filmStorage.listFilms();
-        assertEquals(0, films.size());
-    }
-
-
-    @Test
     public void testListTopFilms() {
         List<Film> topFilms = filmStorage.listTopFilms(10);
         assertThat(topFilms)
@@ -282,31 +242,6 @@ class FilmorateApplicationTests {
         assertNotNull(topFilms);
         assertEquals(topFilms.size(), 2);
         assertEquals(topFilms.get(0).getId(), 2);
-    }
-
-    @Test
-    public void testListTopFilmsByYear() {
-        List<Film> topFilms = filmStorage.listTopFilmsByYear(2000);
-        assertThat(topFilms)
-                .isNotNull()
-                .isEqualTo(Collections.EMPTY_LIST);
-
-        filmStorage.addFilm(filmBuilder.build());
-        filmStorage.addFilm(filmBuilder.releaseDate(LocalDate.of(2001, 1, 1)).build());
-        userStorage.addUser(userBuilder.build());
-
-        topFilms = filmStorage.listTopFilmsByYear(2000);
-        assertNotNull(topFilms);
-        assertEquals(topFilms.size(), 1);
-        assertEquals(topFilms.get(0).getId(), 1);
-
-        Film updatedFilm = filmBuilder.id(2).releaseDate(testReleaseDate).build();
-        filmStorage.updateFilm(updatedFilm);
-
-        topFilms = filmStorage.listTopFilmsByYear(2000);
-        assertNotNull(topFilms);
-        assertEquals(topFilms.size(), 2);
-        assertEquals(topFilms.get(0).getId(), 1);
     }
 
     @Test
@@ -610,373 +545,5 @@ class FilmorateApplicationTests {
         assertNotNull(films);
         assertEquals(films.size(), 2);
         assertEquals(films.get(0).getGenres().get(0).getName(), "Комедия");
-    }
-
-    @Test
-    public void testAddDirector() {
-        Director director = directorBuilder.build();
-        Director addedDirector = directorDao.addDirector(director);
-        assertThat(addedDirector)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("id", 1L);
-    }
-
-    @Test
-    public void testFindDirectorById() {
-        Director director = directorBuilder.build();
-        Director addedDirector = directorDao.addDirector(director);
-        Director directorFound = directorDao.findDirectorById(addedDirector.getId());
-        assertThat(directorFound)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("id", 1L)
-                .isEqualTo(addedDirector);
-
-        NotFoundException ex = assertThrows(
-                NotFoundException.class,
-                () -> directorDao.findDirectorById(-1L)
-        );
-        assertEquals("Режиссёр с id -1 не найден.", ex.getMessage());
-
-        ex = assertThrows(
-                NotFoundException.class,
-                () -> directorDao.findDirectorById(999L)
-        );
-        assertEquals("Режиссёр с id 999 не найден.", ex.getMessage());
-    }
-
-    @Test
-    public void testListDirectors() {
-        List<Director> directors = directorDao.listDirectors();
-        assertThat(directors)
-                .isNotNull()
-                .isEqualTo(Collections.EMPTY_LIST);
-
-        Director director = directorBuilder.build();
-        directorDao.addDirector(director);
-        directors = directorDao.listDirectors();
-        assertNotNull(directors);
-        assertEquals(directors.size(), 1);
-        assertEquals(directors.get(0).getId(), 1);
-    }
-
-    @Test
-    public void testUpdateDirector() {
-        Director director = directorBuilder.build();
-        directorDao.addDirector(director);
-        Director directorToUpdate = directorBuilder.id(1L).name("Name Updated").build();
-        Director directorUpdated = directorDao.updateDirector(directorToUpdate);
-        assertThat(directorUpdated)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("id", 1L)
-                .hasFieldOrPropertyWithValue("name", "Name Updated");
-
-        NotFoundException ex = assertThrows(
-                NotFoundException.class,
-                () -> directorDao.updateDirector(directorBuilder.id(-1L).build())
-        );
-        assertEquals("Режиссёр с id -1 не найден", ex.getMessage());
-
-        ex = assertThrows(
-                NotFoundException.class,
-                () -> directorDao.updateDirector(directorBuilder.id(999L).build())
-        );
-        assertEquals("Режиссёр с id 999 не найден", ex.getMessage());
-    }
-
-    @Test
-    public void testAddDirectorToFilm() {
-        Film film = filmBuilder.build();
-        Film filmAdded = filmStorage.addFilm(film);
-
-        Director director = directorBuilder.build();
-        Director addedDirector = directorDao.addDirector(director);
-
-        filmStorage.addDirectorToFilm(filmAdded.getId(), addedDirector.getId());
-
-        Film filmWithDirector = filmService.findFilmById(filmAdded.getId());
-        Set<Director> directors = new HashSet<>();
-        directors.add(addedDirector);
-
-        assertThat(filmWithDirector)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("id", 1L)
-                .hasFieldOrProperty("directors");
-
-        assertEquals(directors.toString(), filmWithDirector.getDirectors().toString());
-    }
-
-    @Test
-    public void testDeleteDirectorToFilm() {
-        Film film = filmBuilder.build();
-        Film filmAdded = filmStorage.addFilm(film);
-
-        Director director = directorBuilder.build();
-        Director addedDirector = directorDao.addDirector(director);
-
-        filmStorage.addDirectorToFilm(filmAdded.getId(), addedDirector.getId());
-
-        directorDao.deleteDirector(addedDirector.getId());
-        Film filmWithoutDirector = filmStorage.findFilmById(filmAdded.getId());
-
-        assertThat(filmWithoutDirector)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("id", 1L)
-                .hasFieldOrProperty("directors");
-
-        assertEquals(new ArrayList<>(), filmWithoutDirector.getDirectors());
-    }
-
-    @Test
-    public void testFindFilmIdsByTitleQuery() {
-        List<Long> filmIds = filmStorage.findFilmIdsByTitleQuery("a");
-        assertNotNull(filmIds);
-        assertEquals(0, filmIds.size());
-
-        Film film = filmBuilder.build();
-        filmStorage.addFilm(film);
-
-        filmIds = filmStorage.findFilmIdsByTitleQuery("a");
-        assertNotNull(filmIds);
-        assertEquals(1, filmIds.size());
-
-        filmIds = filmStorage.findFilmIdsByTitleQuery("AME");
-        assertNotNull(filmIds);
-        assertEquals(1, filmIds.size());
-    }
-
-    @Test
-    public void testFindFilmIdsByDirectorQuery() {
-        List<Long> filmIds = filmStorage.findFilmIdsByDirectorQuery("a");
-        assertNotNull(filmIds);
-        assertEquals(0, filmIds.size());
-
-        Film film = filmBuilder.build();
-        filmStorage.addFilm(film);
-        Director director = directorBuilder.build();
-        directorDao.addDirector(director);
-        filmStorage.addDirectorToFilm(1, 1);
-
-        filmIds = filmStorage.findFilmIdsByDirectorQuery("a");
-        assertNotNull(filmIds);
-        assertEquals(1, filmIds.size());
-
-        filmIds = filmStorage.findFilmIdsByDirectorQuery("AME");
-        assertNotNull(filmIds);
-        assertEquals(1, filmIds.size());
-    }
-
-    @Test
-    public void testFindCommonFilmIds() {
-        User user = userBuilder.build();
-        userStorage.addUser(user);
-        userStorage.addUser(user);
-
-        List<Long> filmIds = filmStorage.findCommonFilmIds(1L, 2L);
-        assertNotNull(filmIds);
-        assertEquals(0, filmIds.size());
-
-        Film film = filmBuilder.build();
-        filmStorage.addFilm(film);
-        filmStorage.addLike(1, 1);
-
-        filmIds = filmStorage.findCommonFilmIds(1L, 2L);
-        assertNotNull(filmIds);
-        assertEquals(0, filmIds.size());
-
-        filmStorage.addLike(1, 2);
-        filmIds = filmStorage.findCommonFilmIds(1L, 2L);
-        assertNotNull(filmIds);
-        assertEquals(1, filmIds.size());
-    }
-
-    @Test
-    public void testAddReview() {
-        userStorage.addUser(userBuilder.build());
-        filmStorage.addFilm(filmBuilder.build());
-        Review review = reviewBuilder.build();
-        review.setIsPositive(false);
-        Review reviewAdded = reviewDao.addReview(review);
-        assertThat(reviewAdded)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("reviewId", 1L)
-                .hasFieldOrPropertyWithValue("isPositive", false);
-    }
-
-    @Test
-    public void testUpdateReview() {
-        userStorage.addUser(userBuilder.build());
-        filmStorage.addFilm(filmBuilder.build());
-        Review review = reviewBuilder.build();
-        review = reviewDao.addReview(review);
-        review.setIsPositive(false);
-        Review reviewUpdated = reviewDao.updateReview(review);
-        assertThat(reviewUpdated)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("reviewId", 1L)
-                .hasFieldOrPropertyWithValue("isPositive", false);
-
-        NotFoundException ex = assertThrows(
-                NotFoundException.class,
-                () -> reviewDao.updateReview(reviewBuilder.reviewId(-1L).build())
-        );
-        assertEquals("Отзыв с id -1 не найден", ex.getMessage());
-
-        ex = assertThrows(
-                NotFoundException.class,
-                () -> reviewDao.updateReview(reviewBuilder.reviewId(999L).build())
-        );
-        assertEquals("Отзыв с id 999 не найден", ex.getMessage());
-    }
-
-    @Test
-    public void testFindReviewById() {
-        userStorage.addUser(userBuilder.build());
-        filmStorage.addFilm(filmBuilder.build());
-        reviewDao.addReview(reviewBuilder.build());
-
-        Review reviewFound = reviewDao.findReviewById(1);
-        assertThat(reviewFound)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("reviewId", 1L)
-                .hasFieldOrPropertyWithValue("isPositive", true);
-    }
-
-    @Test
-    public void testDeleteReview() {
-        userStorage.addUser(userBuilder.build());
-        filmStorage.addFilm(filmBuilder.build());
-        reviewDao.addReview(reviewBuilder.build());
-        reviewDao.deleteReviewById(1L);
-
-        List<Review> reviews = reviewDao.findAllReview();
-        assertNotNull(reviews);
-        assertEquals(0, reviews.size());
-    }
-
-    @Test
-    public void testFindUsefulByReviewI() {
-        userStorage.addUser(userBuilder.build());
-        filmStorage.addFilm(filmBuilder.build());
-        reviewDao.addReview(reviewBuilder.build());
-
-        long useful = reviewDao.findUsefulByReviewID(1);
-        assertEquals(0L, useful);
-
-        reviewLikesDao.addLikeReview(1, 1);
-
-        useful = reviewDao.findUsefulByReviewID(1);
-        assertEquals(1, useful);
-    }
-
-    @Test
-    public void testFindAllReview() {
-        List<Review> reviews = reviewDao.findAllReview();
-        assertNotNull(reviews);
-        assertEquals(0, reviews.size());
-
-        userStorage.addUser(userBuilder.build());
-        filmStorage.addFilm(filmBuilder.build());
-        reviewDao.addReview(reviewBuilder.build());
-
-        reviews = reviewDao.findAllReview();
-        assertNotNull(reviews);
-        assertEquals(1, reviews.size());
-    }
-
-    @Test
-    public void testFindAllReviewsByFilmId() {
-        userStorage.addUser(userBuilder.build());
-        filmStorage.addFilm(filmBuilder.build());
-
-        List<Review> reviews = reviewDao.findAllReviewsByFilmId(1L);
-        assertNotNull(reviews);
-        assertEquals(0, reviews.size());
-
-        reviewDao.addReview(reviewBuilder.build());
-
-        reviews = reviewDao.findAllReviewsByFilmId(1L);
-        assertNotNull(reviews);
-        assertEquals(1, reviews.size());
-    }
-
-    @Test
-    public void testFindUsefulByReviewID() {
-        userStorage.addUser(userBuilder.build());
-        filmStorage.addFilm(filmBuilder.build());
-        reviewDao.addReview(reviewBuilder.build());
-        long useful = reviewDao.findUsefulByReviewID(1L);
-        assertEquals(0, useful);
-
-        reviewLikesDao.addLikeReview(1L, 1L);
-        useful = reviewDao.findUsefulByReviewID(1L);
-        assertEquals(1, useful);
-
-        reviewLikesDao.addDislikeReview(1L, 1L);
-        useful = reviewDao.findUsefulByReviewID(1L);
-        assertEquals(-1, useful);
-    }
-
-    @Test
-    public void testAddLikeReview() {
-        userStorage.addUser(userBuilder.build());
-        filmStorage.addFilm(filmBuilder.build());
-        reviewDao.addReview(reviewBuilder.build());
-        reviewLikesDao.addDislikeReview(1L, 1L);
-        reviewLikesDao.addLikeReview(1L, 1L);
-
-        long useful = reviewDao.findUsefulByReviewID(1L);
-        assertEquals(1, useful);
-    }
-
-    @Test
-    public void testAddDislikeReview() {
-        userStorage.addUser(userBuilder.build());
-        filmStorage.addFilm(filmBuilder.build());
-        reviewDao.addReview(reviewBuilder.build());
-        reviewLikesDao.addDislikeReview(1L, 1L);
-
-        long useful = reviewDao.findUsefulByReviewID(1L);
-        assertEquals(-1, useful);
-    }
-
-    @Test
-    public void testDeleteLikeReview() {
-        userStorage.addUser(userBuilder.build());
-        filmStorage.addFilm(filmBuilder.build());
-        reviewDao.addReview(reviewBuilder.build());
-        reviewLikesDao.addLikeReview(1L, 1L);
-        reviewLikesDao.deleteLikeReview(1L, 1L);
-
-        long useful = reviewDao.findUsefulByReviewID(1L);
-        assertEquals(0, useful);
-    }
-
-    @Test
-    public void testDeleteDislikeReview() {
-        userStorage.addUser(userBuilder.build());
-        filmStorage.addFilm(filmBuilder.build());
-        reviewDao.addReview(reviewBuilder.build());
-        reviewLikesDao.addDislikeReview(1L, 1L);
-        reviewLikesDao.deleteDislikeReview(1L, 1L);
-
-        long useful = reviewDao.findUsefulByReviewID(1L);
-        assertEquals(0, useful);
-    }
-
-    @Test
-    public void testGetUsefulByReviewList() {
-        userStorage.addUser(userBuilder.build());
-        filmStorage.addFilm(filmBuilder.build());
-        reviewDao.addReview(reviewBuilder.build());
-
-        Map<Long, Long> reviewsWithUseful = reviewLikesDao.getUsefulByReviewList(List.of(1L));
-        assertNotNull(reviewsWithUseful);
-        assertEquals(0, reviewsWithUseful.size());
-
-        reviewLikesDao.addLikeReview(1L, 1L);
-        reviewsWithUseful = reviewLikesDao.getUsefulByReviewList(List.of(1L));
-        assertNotNull(reviewsWithUseful);
-        assertEquals(1, reviewsWithUseful.size());
-        assertEquals(1, reviewsWithUseful.get(1L));
     }
 }

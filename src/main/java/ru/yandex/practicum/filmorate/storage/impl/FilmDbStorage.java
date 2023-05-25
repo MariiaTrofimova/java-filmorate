@@ -18,7 +18,10 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository("FilmDbStorage")
 @Slf4j
@@ -160,6 +163,19 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    public List<Film> getFilmsWithLikes() {
+        String sql = "select f.*, m.name as mpa_name " +
+                "from films as f " +
+                "join mpa as m on f.mpa_id = m.mpa_id " +
+                "left join " +
+                "(select film_id, COUNT(user_id) AS likes_qty " +
+                "from likes group by film_id order by likes_qty desc) " +
+                "as top on f.film_id = top.film_id " +
+                "where likes_qty > 0";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs));
+    }
+
+    @Override
     public boolean deleteFilm(long id) {
         String sql = "delete from films where film_id = ?";
         return jdbcTemplate.update(sql, id) > 0;
@@ -197,6 +213,23 @@ public class FilmDbStorage implements FilmStorage {
                 "where user_id in (?, ?) " +
                 "group by film_id having count(user_id) = 2 ";
         return jdbcTemplate.queryForList(sql, Long.class, userId, friendId);
+    }
+
+    @Override
+    public Map<Long, List<Long>> getUserIdsLikedFilmIds() {
+        String sql = "select user_id, film_id from likes";
+        final Map<Long, List<Long>> userIdsFilmsIds = new HashMap<>();
+
+        jdbcTemplate.query(sql,
+                rs -> {
+                    long userId = rs.getLong("user_id");
+                    long filmId = rs.getLong("film_id");
+                    List<Long> filmIds = userIdsFilmsIds.getOrDefault(userId, new ArrayList<>());
+                    filmIds.add(filmId);
+                    userIdsFilmsIds.put(userId, filmIds);
+                });
+        return userIdsFilmsIds;
+
     }
 
     @Override

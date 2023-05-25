@@ -5,13 +5,18 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Feed;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.FriendshipDao;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ru.yandex.practicum.filmorate.model.enums.EventType.FRIEND;
@@ -22,12 +27,18 @@ import static ru.yandex.practicum.filmorate.model.enums.Operation.*;
 public class DbUserService implements UserService {
     private final UserStorage storage;
     private final FriendshipDao friendshipDao;
+    private final FilmStorage filmStorage;
+    private final GenreService genreService;
     private final FeedService feedService;
 
-    public DbUserService(@Qualifier("UserDbStorage") UserStorage storage, FriendshipDao friendshipDao, FeedService feedService) {
+
+    public DbUserService(@Qualifier("UserDbStorage") UserStorage storage,
+                         FriendshipDao friendshipDao, FilmStorage filmStorage, GenreService genreService,FeedService feedService) {
         this.storage = storage;
         this.friendshipDao = friendshipDao;
         this.feedService = feedService;
+        this.filmStorage = filmStorage;
+        this.genreService = genreService;
     }
 
     @Override
@@ -113,6 +124,38 @@ public class DbUserService implements UserService {
             }
         }
         return friendshipDao.getFriendsByUser(id);
+    }
+
+    @Override
+    public List<Film> recommendations(long userId) {
+        Map<Long, List<Long>> usersLikes = filmStorage.getUserIdsLikedFilmIds();
+        if (usersLikes.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Long> userLikes = usersLikes.getOrDefault(userId, Collections.emptyList());
+        usersLikes.remove(userId);
+
+        long matchesMax = 0;
+        long userIdMax = -1L;
+        for (Map.Entry<Long, List<Long>> userOtherLikes : usersLikes.entrySet()) {
+            long matches = userOtherLikes.getValue().stream()
+                    .filter(userLikes::contains)
+                    .count();
+            if (matches > matchesMax) {
+                matchesMax = matches;
+                userIdMax = userOtherLikes.getKey();
+            }
+        }
+        if (matchesMax == 0) {
+            return Collections.emptyList();
+        }
+
+        List<Long> filmIds = usersLikes.getOrDefault(userIdMax, Collections.emptyList()).stream()
+                .filter(film -> !userLikes.contains(film))
+                .collect(Collectors.toList());
+        //return filmStorage.listTopFilms(filmIds);
+        return genreService.getFilmsWithGenres(
+                filmStorage.listTopFilms(filmIds));
     }
 
     @Override
