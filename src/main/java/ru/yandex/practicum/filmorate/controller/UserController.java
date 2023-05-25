@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Feed;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -68,6 +69,11 @@ public class UserController {
     @DeleteMapping("/{id}/friends/{friendId}")
     public List<Long> deleteFriend(@PathVariable long id, @PathVariable long friendId) {
         return service.deleteFriend(id, friendId);
+    }
+
+    @GetMapping("/{id}/recommendations")
+    public List<Film> recommendations(@PathVariable long id) {
+        return service.recommendations(id);
     }
     @GetMapping("/{id}/feed")
     public List<Feed> getFeed(@PathVariable long id) {
