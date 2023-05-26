@@ -12,17 +12,21 @@ import javax.validation.constraints.NotNull;
 @Builder
 @AllArgsConstructor
 public class Feed {
-
-    @NotNull
+    @NotNull(message = "Отсутствует eventId события")
     private Long eventId;
-    @NotNull
+
+    @NotNull(message = "Отсутствует entityId события")
     private Long entityId;
-    @NotNull
+
+    @NotNull(message = "Отсутствует автор события")
     private Long userId;
-    @NotNull
+
+    @NotNull(message = "Отсутствует время события")
     private Long timestamp;
-    @NotNull
+
+    @NotNull(message = "Отсутствует тип события")
     private EventType eventType;
-    @NotNull
+
+    @NotNull(message = "Отсутствует вид операции")
     private Operation operation;
 }

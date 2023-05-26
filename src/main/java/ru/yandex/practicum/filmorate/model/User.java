@@ -15,7 +15,6 @@ import java.util.Set;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class User {
-    private final Set<Long> friends = new HashSet<>();
     private long id;
     @NotBlank(message = "E-mail не может быть пустым")
     @Email(message = "Введен некорректный e-mail")
@@ -27,6 +26,7 @@ public class User {
     @NotNull(message = "Дата рождения не может быть пустой")
     @PastOrPresent(message = "Дата рождения не может быть из будущего")
     private LocalDate birthday;
+    private final Set<Long> friends = new HashSet<>();
 
     public void addFriend(long id) {
         friends.add(id);

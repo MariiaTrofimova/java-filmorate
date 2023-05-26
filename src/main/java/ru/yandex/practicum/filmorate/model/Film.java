@@ -17,9 +17,6 @@ import java.util.stream.Collectors;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Film {
-    private final Set<Genre> genres = new HashSet<>();
-    private final Set<Director> directors = new HashSet<>();
-    private final Set<Long> likes = new HashSet<>(); //id пользователей, поставивших лайки
     private long id;
     @NotBlank(message = "Отсутствует название")
     private String name;
@@ -31,6 +28,9 @@ public class Film {
     @PositiveOrZero(message = "Продолжительность фильма отрицательная")
     private int duration;
     private Mpa mpa;
+    private final Set<Genre> genres = new HashSet<>();
+    private final Set<Director> directors = new HashSet<>();
+    private final Set<Long> likes = new HashSet<>(); //id пользователей, поставивших лайки
     //я бы оставила как параметр фильма, удалила лишние dao и модели, являющиеся не сущностями, а связями
 
     public void addLike(long id) {

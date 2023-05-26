@@ -22,7 +22,7 @@ public class UserController {
     private final UserService service;
 
     @Autowired
-    public UserController(FeedService feedService, @Qualifier("DbUserService") UserService service) {
+    public UserController(@Qualifier("DbUserService") UserService service, FeedService feedService) {
         this.feedService = feedService;
         this.service = service;
     }
@@ -80,7 +80,6 @@ public class UserController {
 
     @GetMapping("/{id}/feed")
     public List<Feed> getFeed(@PathVariable long id) {
-        service.findUserById(id);
         return service.getFeedByUserId(id);
     }
 }

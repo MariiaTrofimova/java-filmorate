@@ -6,11 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.service.DirectorService;
-import ru.yandex.practicum.filmorate.service.FeedService;
-import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.service.GenreService;
-import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.service.*;
 import ru.yandex.practicum.filmorate.storage.DirectorDao;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
@@ -34,7 +30,7 @@ public class DbFilmService implements FilmService {
     public DbFilmService(@Qualifier("FilmDbStorage") FilmStorage storage,
                          DirectorDao directorDao,
                          @Qualifier("DbUserService") UserService userService,
-                         GenreService genreService, DirectorService directorService,FeedService feedService) {
+                         GenreService genreService, DirectorService directorService, FeedService feedService) {
         this.storage = storage;
         this.directorDao = directorDao;
         this.userService = userService;
