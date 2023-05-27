@@ -159,6 +159,7 @@ public class DbUserService implements UserService {
 
     }
 
+    
     @Override
     public List<Feed> getFeedByUserId(long id) {
         storage.findUserById(id);
