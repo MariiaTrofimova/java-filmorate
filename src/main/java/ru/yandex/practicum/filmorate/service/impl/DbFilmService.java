@@ -6,15 +6,16 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.service.DirectorService;
-import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.service.GenreService;
-import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.service.*;
 import ru.yandex.practicum.filmorate.storage.DirectorDao;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static ru.yandex.practicum.filmorate.model.enums.EventType.LIKE;
+import static ru.yandex.practicum.filmorate.model.enums.Operation.ADD;
+import static ru.yandex.practicum.filmorate.model.enums.Operation.REMOVE;
 
 @Service("DbFilmService")
 public class DbFilmService implements FilmService {
@@ -23,17 +24,19 @@ public class DbFilmService implements FilmService {
     private final UserService userService;
     private final GenreService genreService;
     private final DirectorService directorService;
+    private final FeedService feedService;
 
     @Autowired
     public DbFilmService(@Qualifier("FilmDbStorage") FilmStorage storage,
                          DirectorDao directorDao,
                          @Qualifier("DbUserService") UserService userService,
-                         GenreService genreService, DirectorService directorService) {
+                         GenreService genreService, DirectorService directorService, FeedService feedService) {
         this.storage = storage;
         this.directorDao = directorDao;
         this.userService = userService;
         this.genreService = genreService;
         this.directorService = directorService;
+        this.feedService = feedService;
     }
 
     @Override
@@ -124,6 +127,7 @@ public class DbFilmService implements FilmService {
         findFilmById(filmId);
         userService.findUserById(userId);
         storage.addLike(filmId, userId);
+        feedService.add(filmId, userId, LIKE, ADD);
         return storage.getLikesByFilm(filmId);
     }
 
@@ -132,6 +136,7 @@ public class DbFilmService implements FilmService {
         findFilmById(filmId);
         userService.findUserById(userId);
         storage.deleteLike(filmId, userId);
+        feedService.add(filmId, userId, LIKE, REMOVE);
         return storage.getLikesByFilm(filmId);
     }
 

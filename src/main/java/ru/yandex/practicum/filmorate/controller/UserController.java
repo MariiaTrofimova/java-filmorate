@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.model.Feed;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
@@ -16,7 +17,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RestController
 @RequestMapping(value = "/users", produces = "application/json")
 public class UserController {
-
     private final UserService service;
 
     @Autowired
@@ -73,5 +73,10 @@ public class UserController {
     @GetMapping("/{id}/recommendations")
     public List<Film> recommendations(@PathVariable long id) {
         return service.recommendations(id);
+    }
+
+    @GetMapping("/{id}/feed")
+    public List<Feed> getFeed(@PathVariable long id) {
+        return service.getFeedByUserId(id);
     }
 }

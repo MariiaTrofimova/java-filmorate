@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.ReviewService;
 import ru.yandex.practicum.filmorate.service.UserService;
@@ -14,6 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static ru.yandex.practicum.filmorate.model.enums.EventType.REVIEW;
+import static ru.yandex.practicum.filmorate.model.enums.Operation.*;
 
 @Service("ReviewDaoImpl")
 public class DbReviewService implements ReviewService {
@@ -26,12 +30,15 @@ public class DbReviewService implements ReviewService {
 
     private final FilmService filmService;
 
+    private final FeedService feedService;
+
     @Autowired
-    public DbReviewService(@Qualifier("reviewDaoImpl") ReviewDao reviewDao, ReviewLikesDao reviewLikesDao, UserService userService, FilmService filmService) {
+    public DbReviewService(@Qualifier("reviewDaoImpl") ReviewDao reviewDao, ReviewLikesDao reviewLikesDao, UserService userService, FilmService filmService, FeedService feedService) {
         this.reviewDao = reviewDao;
         this.reviewLikesDao = reviewLikesDao;
         this.userService = userService;
         this.filmService = filmService;
+        this.feedService = feedService;
     }
 
     @Override
@@ -58,16 +65,22 @@ public class DbReviewService implements ReviewService {
     public Review addReview(Review review) {
         userService.findUserById(review.getUserId());
         filmService.findFilmById(review.getFilmId());
-        return reviewDao.addReview(review);
+        review = reviewDao.addReview(review);
+        feedService.add(review.getReviewId(), review.getUserId(), REVIEW, ADD);
+        return review;
     }
 
     @Override
     public Review updateReview(Review review) {
-        return reviewDao.updateReview(review);
+        review = reviewDao.updateReview(review);
+        feedService.add(review.getReviewId(), review.getUserId(), REVIEW, UPDATE);
+        return review;
     }
 
     @Override
     public boolean deleteReviewById(long id) {
+        Review review = reviewDao.findReviewById(id);
+        feedService.add(review.getReviewId(), review.getUserId(), REVIEW, REMOVE);
         return reviewDao.deleteReviewById(id);
     }
 
