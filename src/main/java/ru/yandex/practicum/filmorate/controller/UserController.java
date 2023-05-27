@@ -17,11 +17,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RestController
 @RequestMapping(value = "/users", produces = "application/json")
 public class UserController {
-        private final UserService service;
+    private final UserService service;
 
     @Autowired
     public UserController(@Qualifier("DbUserService") UserService service) {
-        this.feedService = feedService;
         this.service = service;
     }
 
