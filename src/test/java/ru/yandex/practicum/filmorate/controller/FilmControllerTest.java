@@ -384,6 +384,16 @@ class FilmControllerTest {
     }
 
     @Test
+    void shouldAddLikeToFilm3FromUser1() throws Exception {
+        when(service.addLike(3, 1)).thenReturn(List.of(1L));
+        mockMvc.perform(put(url + "/3/like/1"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()", is(1)))
+                .andExpect(jsonPath("$[0]", is(1)));
+    }
+
+    @Test
     void shouldDeleteLike() throws Exception {
         when(service.deleteLike(1, 1)).thenReturn(Collections.EMPTY_LIST);
         mockMvc.perform(delete(url + "/1/like/1"))

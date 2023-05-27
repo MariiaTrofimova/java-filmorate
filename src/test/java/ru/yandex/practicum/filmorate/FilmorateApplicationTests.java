@@ -444,6 +444,13 @@ class FilmorateApplicationTests {
         assertNotNull(likes);
         assertEquals(likes.size(), 1);
         assertEquals(likes.get(0), 1);
+
+        filmStorage.addFilm(film);
+        filmStorage.addFilm(film);
+        filmStorage.addLike(3, 1);
+        likes = filmStorage.getLikesByFilm(3);
+        assertNotNull(likes);
+        assertEquals(1, likes.size());
     }
 
     @Test

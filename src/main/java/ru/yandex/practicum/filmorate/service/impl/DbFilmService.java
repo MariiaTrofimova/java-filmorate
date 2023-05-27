@@ -126,9 +126,15 @@ public class DbFilmService implements FilmService {
     public List<Long> addLike(long filmId, long userId) {
         findFilmById(filmId);
         userService.findUserById(userId);
-        storage.addLike(filmId, userId);
+        //проверка на наличие лайка: в тестах два раза добавляется лайк (3, 1), и оба раза записывается feed
+        List<Long> likes = storage.getLikesByFilm(filmId);
         feedService.add(filmId, userId, LIKE, ADD);
-        return storage.getLikesByFilm(filmId);
+        if (likes.contains(userId)) {
+            return likes;
+        }
+        storage.addLike(filmId, userId);
+        likes.add(userId);
+        return likes;
     }
 
     @Override
