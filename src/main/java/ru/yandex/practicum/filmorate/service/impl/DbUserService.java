@@ -156,8 +156,8 @@ public class DbUserService implements UserService {
         //return filmStorage.listTopFilms(filmIds);
         return genreService.getFilmsWithGenres(
                 filmStorage.listTopFilms(filmIds));
-    }
 
+    }
     @Override
     public List<Feed> getFeedByUserId(long id) {
         storage.findUserById(id);

@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Feed;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
@@ -18,12 +17,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RestController
 @RequestMapping(value = "/users", produces = "application/json")
 public class UserController {
-    public final FeedService feedService;
     private final UserService service;
 
     @Autowired
-    public UserController(@Qualifier("DbUserService") UserService service, FeedService feedService) {
-        this.feedService = feedService;
+    public UserController(@Qualifier("DbUserService") UserService service) {
         this.service = service;
     }
 
