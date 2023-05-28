@@ -4,10 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Review;
-import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.ReviewService;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.FeedStorage;
 import ru.yandex.practicum.filmorate.storage.ReviewLikesStorage;
 import ru.yandex.practicum.filmorate.storage.ReviewStorage;
 
@@ -28,15 +28,17 @@ public class DbReviewService implements ReviewService {
 
     private final FilmService filmService;
 
-    private final FeedService feedService;
+    private final FeedStorage feedStorage;
 
     @Autowired
-    public DbReviewService(@Qualifier("reviewDbStorage") ReviewStorage reviewStorage, ReviewLikesStorage reviewLikesStorage, UserService userService, FilmService filmService, FeedService feedService) {
+    public DbReviewService(@Qualifier("reviewDbStorage") ReviewStorage reviewStorage,
+                           ReviewLikesStorage reviewLikesStorage, UserService userService, FilmService filmService,
+                           FeedStorage feedStorage) {
         this.reviewStorage = reviewStorage;
         this.reviewLikesStorage = reviewLikesStorage;
         this.userService = userService;
         this.filmService = filmService;
-        this.feedService = feedService;
+        this.feedStorage = feedStorage;
     }
 
     @Override
@@ -58,21 +60,21 @@ public class DbReviewService implements ReviewService {
         userService.findUserById(review.getUserId());
         filmService.findFilmById(review.getFilmId());
         review = reviewStorage.addReview(review);
-        feedService.add(review.getReviewId(), review.getUserId(), REVIEW, ADD);
+        feedStorage.addFeed(review.getReviewId(), review.getUserId(), REVIEW, ADD);
         return review;
     }
 
     @Override
     public Review updateReview(Review review) {
         review = reviewStorage.updateReview(review);
-        feedService.add(review.getReviewId(), review.getUserId(), REVIEW, UPDATE);
+        feedStorage.addFeed(review.getReviewId(), review.getUserId(), REVIEW, UPDATE);
         return review;
     }
 
     @Override
     public boolean deleteReviewById(long id) {
         Review review = reviewStorage.findReviewById(id);
-        feedService.add(review.getReviewId(), review.getUserId(), REVIEW, REMOVE);
+        feedStorage.addFeed(review.getReviewId(), review.getUserId(), REVIEW, REMOVE);
         return reviewStorage.deleteReviewById(id);
     }
 
