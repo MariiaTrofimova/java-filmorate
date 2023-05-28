@@ -7,9 +7,9 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Feed;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.FeedStorage;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
@@ -29,14 +29,15 @@ public class DbUserService implements UserService {
     private final FriendshipStorage friendshipStorage;
     private final FilmStorage filmStorage;
     private final GenreService genreService;
-    private final FeedService feedService;
+    private final FeedStorage feedStorage;
 
 
     public DbUserService(@Qualifier("UserDbStorage") UserStorage storage,
-                         FriendshipStorage friendshipStorage, FilmStorage filmStorage, GenreService genreService, FeedService feedService) {
+                         FriendshipStorage friendshipStorage, FilmStorage filmStorage, GenreService genreService,
+                         FeedStorage feedStorage) {
         this.storage = storage;
         this.friendshipStorage = friendshipStorage;
-        this.feedService = feedService;
+        this.feedStorage = feedStorage;
         this.filmStorage = filmStorage;
         this.genreService = genreService;
     }
@@ -92,10 +93,10 @@ public class DbUserService implements UserService {
         boolean isFriendToUser = friendshipStorage.getFriendsByUser(friendId).contains(id);
         if (!isUserToFriend && !isFriendToUser) {
             friendshipStorage.addFriend(id, friendId);
-            feedService.add(friendId, id, FRIEND, ADD);
+            feedStorage.addFeed(friendId, id, FRIEND, ADD);
         } else if (isUserToFriend && !isFriendToUser) {
             friendshipStorage.updateFriend(friendId, id, true);
-            feedService.add(friendId, id, FRIEND, UPDATE);
+            feedStorage.addFeed(friendId, id, FRIEND, UPDATE);
         } else {
             log.debug("Повторный запрос в друзья от пользователя с id {} пользователю с id {}", id, friendId);
         }
@@ -115,12 +116,12 @@ public class DbUserService implements UserService {
                             friendId, id));
         } else if (!isFriendHasUser) {
             friendshipStorage.deleteFriend(friendId, id);
-            feedService.add(friendId, id, FRIEND, REMOVE);
+            feedStorage.addFeed(friendId, id, FRIEND, REMOVE);
         } else {
             if (!friendshipStorage.updateFriend(id, friendId, false)) {
                 friendshipStorage.deleteFriend(friendId, id);
                 friendshipStorage.addFriend(id, friendId);
-                feedService.add(friendId, id, FRIEND, REMOVE);
+                feedStorage.addFeed(friendId, id, FRIEND, REMOVE);
             }
         }
         return friendshipStorage.getFriendsByUser(id);
@@ -161,6 +162,6 @@ public class DbUserService implements UserService {
     @Override
     public List<Feed> getFeedByUserId(long id) {
         storage.findUserById(id);
-        return feedService.getByUserId(id);
+        return feedStorage.findByUserId(id);
     }
 }

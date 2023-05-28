@@ -6,9 +6,13 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.service.*;
+import ru.yandex.practicum.filmorate.service.DirectorService;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.storage.DirectorStorage;
+import ru.yandex.practicum.filmorate.storage.FeedStorage;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -21,22 +25,22 @@ import static ru.yandex.practicum.filmorate.model.enums.Operation.REMOVE;
 public class DbFilmService implements FilmService {
     private final FilmStorage storage;
     private final DirectorStorage directorStorage;
-    private final UserService userService;
+    private final UserStorage userStorage;
     private final GenreService genreService;
     private final DirectorService directorService;
-    private final FeedService feedService;
+    private final FeedStorage feedStorage;
 
     @Autowired
     public DbFilmService(@Qualifier("FilmDbStorage") FilmStorage storage,
                          DirectorStorage directorStorage,
-                         @Qualifier("DbUserService") UserService userService,
-                         GenreService genreService, DirectorService directorService, FeedService feedService) {
+                         @Qualifier("UserDbStorage") UserStorage userStorage,
+                         GenreService genreService, DirectorService directorService, FeedStorage feedStorage) {
         this.storage = storage;
         this.directorStorage = directorStorage;
-        this.userService = userService;
+        this.userStorage = userStorage;
         this.genreService = genreService;
         this.directorService = directorService;
-        this.feedService = feedService;
+        this.feedStorage = feedStorage;
     }
 
     @Override
@@ -96,8 +100,8 @@ public class DbFilmService implements FilmService {
 
     @Override
     public List<Film> findCommonFilms(Long userId, Long friendId) {
-        userService.findUserById(userId);
-        userService.findUserById(friendId);
+        userStorage.findUserById(userId);
+        userStorage.findUserById(friendId);
         List<Long> filmIds = storage.findCommonFilmIds(userId, friendId);
         return directorService.getFilmsWithDirectors(genreService.getFilmsWithGenres(storage.listTopFilms(filmIds)));
     }
@@ -125,10 +129,10 @@ public class DbFilmService implements FilmService {
     @Override
     public List<Long> addLike(long filmId, long userId) {
         findFilmById(filmId);
-        userService.findUserById(userId);
+        userStorage.findUserById(userId);
         //проверка на наличие лайка: в тестах два раза добавляется лайк (3, 1), и оба раза записывается feed
         List<Long> likes = storage.getLikesByFilm(filmId);
-        feedService.add(filmId, userId, LIKE, ADD);
+        feedStorage.addFeed(filmId, userId, LIKE, ADD);
         if (likes.contains(userId)) {
             return likes;
         }
@@ -140,9 +144,9 @@ public class DbFilmService implements FilmService {
     @Override
     public List<Long> deleteLike(long filmId, long userId) {
         findFilmById(filmId);
-        userService.findUserById(userId);
+        userStorage.findUserById(userId);
         storage.deleteLike(filmId, userId);
-        feedService.add(filmId, userId, LIKE, REMOVE);
+        feedStorage.addFeed(filmId, userId, LIKE, REMOVE);
         return storage.getLikesByFilm(filmId);
     }
 
