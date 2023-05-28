@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public interface GenreDao {
+public interface GenreStorage {
     List<Genre> getGenres();
 
     Genre findGenreById(int id);

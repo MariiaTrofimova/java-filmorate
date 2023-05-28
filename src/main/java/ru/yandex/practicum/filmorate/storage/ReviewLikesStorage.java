@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.storage;
 import java.util.List;
 import java.util.Map;
 
-public interface ReviewLikesDao {
+public interface ReviewLikesStorage {
     boolean addLikeReview(long reviewId, long userId);
 
     boolean addDislikeReview(long reviewId, long userId);

@@ -3,25 +3,25 @@ package ru.yandex.practicum.filmorate.service.impl;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.service.MpaService;
-import ru.yandex.practicum.filmorate.storage.MpaDao;
+import ru.yandex.practicum.filmorate.storage.MpaStorage;
 
 import java.util.List;
 
 @Service
 public class DbMpaService implements MpaService {
-    private final MpaDao mpaDao;
+    private final MpaStorage mpaStorage;
 
-    public DbMpaService(MpaDao mpaDao) {
-        this.mpaDao = mpaDao;
+    public DbMpaService(MpaStorage mpaStorage) {
+        this.mpaStorage = mpaStorage;
     }
 
     @Override
     public List<Mpa> listMpa() {
-        return mpaDao.getMpas();
+        return mpaStorage.getMpas();
     }
 
     @Override
     public Mpa findMpaById(int id) {
-        return mpaDao.findMpaById(id);
+        return mpaStorage.findMpaById(id);
     }
 }

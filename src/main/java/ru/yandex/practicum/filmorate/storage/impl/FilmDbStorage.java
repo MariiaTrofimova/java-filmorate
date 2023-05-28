@@ -112,7 +112,7 @@ public class FilmDbStorage implements FilmStorage {
                 "join mpa as m on f.mpa_id = m.mpa_id " +
                 "left join " +
                 "(select film_id, COUNT(user_id) AS likes_qty " +
-                "from likes group by film_id order by likes_qty desc) " +
+                "from likes group by film_id) " +
                 "as top on f.film_id = top.film_id " +
                 "order by top.likes_qty desc";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs));
@@ -125,7 +125,7 @@ public class FilmDbStorage implements FilmStorage {
                 "join mpa as m on f.mpa_id = m.mpa_id " +
                 "left join " +
                 "(select film_id, COUNT(user_id) AS likes_qty " +
-                "from likes group by film_id order by likes_qty desc) " +
+                "from likes group by film_id) " +
                 "as top on f.film_id = top.film_id " +
                 "where f.film_id in (:ids)" +
                 "order by top.likes_qty desc";
@@ -140,7 +140,7 @@ public class FilmDbStorage implements FilmStorage {
                 "join mpa as m on f.mpa_id = m.mpa_id " +
                 "left join " +
                 "(select film_id, COUNT(user_id) AS likes_qty " +
-                "from likes group by film_id order by likes_qty desc) " +
+                "from likes group by film_id) " +
                 "as top on f.film_id = top.film_id " +
                 "where (extract(year from release_date) = ?)" +
                 "order by top.likes_qty desc " +
@@ -160,19 +160,6 @@ public class FilmDbStorage implements FilmStorage {
                 "where (extract(year from release_date) = ?)" +
                 "order by top.likes_qty desc ";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), year);
-    }
-
-    @Override
-    public List<Film> getFilmsWithLikes() {
-        String sql = "select f.*, m.name as mpa_name " +
-                "from films as f " +
-                "join mpa as m on f.mpa_id = m.mpa_id " +
-                "left join " +
-                "(select film_id, COUNT(user_id) AS likes_qty " +
-                "from likes group by film_id order by likes_qty desc) " +
-                "as top on f.film_id = top.film_id " +
-                "where likes_qty > 0";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs));
     }
 
     @Override
@@ -224,9 +211,8 @@ public class FilmDbStorage implements FilmStorage {
                 rs -> {
                     long userId = rs.getLong("user_id");
                     long filmId = rs.getLong("film_id");
-                    List<Long> filmIds = userIdsFilmsIds.getOrDefault(userId, new ArrayList<>());
-                    filmIds.add(filmId);
-                    userIdsFilmsIds.put(userId, filmIds);
+                    userIdsFilmsIds.computeIfAbsent(userId, k -> new ArrayList<>())
+                            .add(filmId);
                 });
         return userIdsFilmsIds;
 

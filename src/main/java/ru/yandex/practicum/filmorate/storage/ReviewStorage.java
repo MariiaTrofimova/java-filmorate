@@ -4,7 +4,7 @@ import ru.yandex.practicum.filmorate.model.Review;
 
 import java.util.List;
 
-public interface ReviewDao {
+public interface ReviewStorage {
 
     Review addReview(Review review);
 
@@ -14,9 +14,11 @@ public interface ReviewDao {
 
     boolean deleteReviewById(long id);
 
-    List<Review> findAllReview();
+/*    List<Review> findAllReview();
 
-    List<Review> findAllReviewsByFilmId(long filmId);
+    long findUsefulByReviewID(long id);*/
 
-    long findUsefulByReviewID(long id);
+    List<Review> findTopReviews(int count);
+
+    List<Review> findTopReviewsByFilmId(Long filmId, int count);
 }

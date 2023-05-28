@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.service.MpaService;
-import ru.yandex.practicum.filmorate.storage.MpaDao;
+import ru.yandex.practicum.filmorate.storage.MpaStorage;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import java.util.List;
 public class MpaController {
     private final MpaService mpaService;
 
-    public MpaController(MpaDao mpaDao, MpaService mpaService) {
+    public MpaController(MpaStorage mpaStorage, MpaService mpaService) {
         this.mpaService = mpaService;
     }
 

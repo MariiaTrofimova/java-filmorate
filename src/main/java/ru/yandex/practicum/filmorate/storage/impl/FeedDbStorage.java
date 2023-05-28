@@ -16,9 +16,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FeedDbStorage implements FeedStorage {
 
-    private static final String SQL_FIND_BY_USER_ID = "SELECT * FROM feed WHERE id_user = ? ORDER BY timestamp ASC";
-    private static final String SQL_ADD_FEED = "INSERT INTO feed(id_entity, id_user, timestamp, event_type, operation)" +
-            "VALUES (?, ?, ?, ?, ?)";
+    private static final String SQL_FIND_BY_USER_ID = "SELECT * FROM feed WHERE id_user = ? ORDER BY CREATED_TS";
+    private static final String SQL_ADD_FEED = "INSERT INTO feed(id_entity, id_user, event_type, operation)" +
+            "VALUES (?, ?, ?, ?)";
     private final JdbcTemplate jdbcTemplate;
 
     @Override
@@ -27,16 +27,15 @@ public class FeedDbStorage implements FeedStorage {
     }
 
     @Override
-    public void addFeed(Long idEntity, Long idUser, Long timestamp, EventType eventType, Operation operation) {
-        jdbcTemplate.update(SQL_ADD_FEED, idEntity, idUser, timestamp,
-                eventType.toString(), operation.toString());
+    public void addFeed(Long idEntity, Long idUser, EventType eventType, Operation operation) {
+        jdbcTemplate.update(SQL_ADD_FEED, idEntity, idUser, eventType.toString(), operation.toString());
     }
 
     private Feed mapRowToFeed(ResultSet rs) throws SQLException {
         long feedId = rs.getLong("id_event");
         long entityId = rs.getLong("id_entity");
         long userId = rs.getLong("id_user");
-        long timestamp = rs.getLong("timestamp");
+        Long timestamp = rs.getTimestamp("created_ts").toInstant().toEpochMilli();
         EventType eventType = EventType.valueOf(rs.getString("event_type"));
         Operation operation = Operation.valueOf(rs.getString("operation"));
 

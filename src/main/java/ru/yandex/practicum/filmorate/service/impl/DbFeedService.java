@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.enums.Operation;
 import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.storage.FeedStorage;
 
-import java.time.Instant;
 import java.util.List;
 
 @Service("DbFeedService")
@@ -18,8 +17,7 @@ public class DbFeedService implements FeedService {
 
     @Override
     public void add(Long idEntity, Long idUser, EventType eventType, Operation operation) {
-        Long timestamp = Instant.now().toEpochMilli();
-        feedStorage.addFeed(idEntity, idUser, timestamp, eventType, operation);
+        feedStorage.addFeed(idEntity, idUser, eventType, operation);
     }
 
     @Override

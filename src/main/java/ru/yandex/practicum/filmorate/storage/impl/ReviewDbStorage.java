@@ -7,7 +7,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
-import ru.yandex.practicum.filmorate.storage.ReviewDao;
+import ru.yandex.practicum.filmorate.storage.ReviewStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,11 +15,11 @@ import java.util.List;
 
 @Repository
 @Slf4j
-public class ReviewDaoImpl implements ReviewDao {
+public class ReviewDbStorage implements ReviewStorage {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public ReviewDaoImpl(JdbcTemplate jdbcTemplate) {
+    public ReviewDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -56,32 +56,32 @@ public class ReviewDaoImpl implements ReviewDao {
     }
 
     @Override
-    public List<Review> findAllReview() {
-        String sql = "select * from reviews";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToReview(rs));
+    public List<Review> findTopReviews(int count) {
+        String sql = "select r.*, SUM(COALESCE(rl.is_positive, 0)) as useful from reviews as r " +
+                "left join review_likes as rl on r.review_id = rl.review_id " +
+                "group by r.review_id " +
+                "order by useful desc " +
+                "limit ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToReview(rs), count);
     }
 
     @Override
-    public List<Review> findAllReviewsByFilmId(long filmId) {
-        String sql = "select * from reviews where film_id = ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToReview(rs), filmId);
-    }
-
-    @Override
-    public long findUsefulByReviewID(long id) {
-        String sql = "select SUM(is_positive) as useful " +
-                "from review_likes  " +
-                "where review_id = ? " +
-                "group by review_id";
-        List<Long> list = jdbcTemplate.queryForList(sql, Long.class, id);
-        if (list.isEmpty()) {
-            return 0L;
-        } else return list.get(0);
+    public List<Review> findTopReviewsByFilmId(Long filmId, int count) {
+        String sql = "select r.*, SUM(COALESCE(rl.is_positive, 0)) as useful from reviews as r " +
+                "left join review_likes as rl on r.review_id = rl.review_id " +
+                "where r.film_id = ? " +
+                "group by r.review_id " +
+                "order by useful desc " +
+                "limit ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToReview(rs), filmId, count);
     }
 
     @Override
     public Review findReviewById(long id) {
-        String sql = "select * from reviews where review_id = ?";
+        String sql = "select r.*, SUM(COALESCE(rl.is_positive, 0)) as useful from reviews as r " +
+                "left join review_likes as rl on r.review_id = rl.review_id " +
+                "where r.review_id = ? " +
+                "group by r.review_id";
         try {
             return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRowToReview(rs), id);
         } catch (DataRetrievalFailureException e) {
@@ -96,6 +96,7 @@ public class ReviewDaoImpl implements ReviewDao {
         boolean isPositive = rs.getBoolean("is_positive");
         long userId = rs.getLong("user_id");
         long filmId = rs.getLong("film_id");
+        long useful = rs.getLong("useful");
 
         return Review.builder()
                 .reviewId(id)
@@ -103,6 +104,7 @@ public class ReviewDaoImpl implements ReviewDao {
                 .isPositive(isPositive)
                 .userId(userId)
                 .filmId(filmId)
+                .useful(useful)
                 .build();
     }
 }

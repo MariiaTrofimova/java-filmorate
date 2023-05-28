@@ -7,7 +7,7 @@ import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.*;
-import ru.yandex.practicum.filmorate.storage.DirectorDao;
+import ru.yandex.practicum.filmorate.storage.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.*;
@@ -20,7 +20,7 @@ import static ru.yandex.practicum.filmorate.model.enums.Operation.REMOVE;
 @Service("DbFilmService")
 public class DbFilmService implements FilmService {
     private final FilmStorage storage;
-    private final DirectorDao directorDao;
+    private final DirectorStorage directorStorage;
     private final UserService userService;
     private final GenreService genreService;
     private final DirectorService directorService;
@@ -28,11 +28,11 @@ public class DbFilmService implements FilmService {
 
     @Autowired
     public DbFilmService(@Qualifier("FilmDbStorage") FilmStorage storage,
-                         DirectorDao directorDao,
+                         DirectorStorage directorStorage,
                          @Qualifier("DbUserService") UserService userService,
                          GenreService genreService, DirectorService directorService, FeedService feedService) {
         this.storage = storage;
-        this.directorDao = directorDao;
+        this.directorStorage = directorStorage;
         this.userService = userService;
         this.genreService = genreService;
         this.directorService = directorService;
@@ -82,15 +82,15 @@ public class DbFilmService implements FilmService {
 
     @Override
     public List<Film> findFilmsByQuery(String query, String[] by) {
-        List<Long> filmIds = new ArrayList<>();
-        if (Arrays.asList(by).contains("director")) {
+        Set<Long> filmIds = new HashSet<>();
+        Collection<String> strings = new HashSet<>(Arrays.asList(by));
+        if (strings.contains("director")) {
             filmIds.addAll(storage.findFilmIdsByDirectorQuery(query));
         }
-        if (Arrays.asList(by).contains("title")) {
+        if (strings.contains("title")) {
             filmIds.addAll(storage.findFilmIdsByTitleQuery(query));
         }
-        filmIds = filmIds.stream().distinct().collect(Collectors.toList());
-        List<Film> topFilms = storage.listTopFilms(filmIds);
+        List<Film> topFilms = storage.listTopFilms(new ArrayList<>(filmIds));
         return directorService.getFilmsWithDirectors(genreService.getFilmsWithGenres(topFilms));
     }
 
@@ -99,13 +99,13 @@ public class DbFilmService implements FilmService {
         userService.findUserById(userId);
         userService.findUserById(friendId);
         List<Long> filmIds = storage.findCommonFilmIds(userId, friendId);
-        return storage.listTopFilms(filmIds);
+        return directorService.getFilmsWithDirectors(genreService.getFilmsWithGenres(storage.listTopFilms(filmIds)));
     }
 
     @Override
     public Film findFilmById(long id) {
         Film film = storage.findFilmById(id);
-        directorDao.getDirectorsByFilm(film.getId())
+        directorStorage.getDirectorsByFilm(film.getId())
                 .forEach(film::addDirector);
         genreService.getGenresByFilm(film.getId())
                 .forEach(film::addGenre);
@@ -148,7 +148,7 @@ public class DbFilmService implements FilmService {
 
     @Override
     public List<Film> listFilmsByDirector(long directorId, Optional<String> sortParam) {
-        Director director = directorDao.findDirectorById(directorId);
+        Director director = directorStorage.findDirectorById(directorId);
         if (sortParam.isPresent()) {
             if (sortParam.get().equals("year")) {
                 return directorService.getFilmsWithDirectors(listFilms())

@@ -6,7 +6,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.storage.ReviewLikesDao;
+import ru.yandex.practicum.filmorate.storage.ReviewLikesStorage;
 
 import java.util.HashMap;
 import java.util.List;
@@ -14,12 +14,12 @@ import java.util.Map;
 
 @Repository
 @Slf4j
-public class ReviewLikesDaoImpl implements ReviewLikesDao {
+public class ReviewLikesDbStorage implements ReviewLikesStorage {
 
     private final JdbcTemplate jdbcTemplate;
     private final NamedParameterJdbcTemplate namedJdbcTemplate;
 
-    public ReviewLikesDaoImpl(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedJdbcTemplate) {
+    public ReviewLikesDbStorage(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedJdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         this.namedJdbcTemplate = namedJdbcTemplate;
     }
