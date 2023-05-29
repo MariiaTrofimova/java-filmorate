@@ -3,50 +3,115 @@ package ru.yandex.practicum.filmorate.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.service.DirectorService;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.service.GenreService;
+import ru.yandex.practicum.filmorate.storage.DirectorStorage;
+import ru.yandex.practicum.filmorate.storage.FeedStorage;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.GenreDao;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static ru.yandex.practicum.filmorate.model.enums.EventType.LIKE;
+import static ru.yandex.practicum.filmorate.model.enums.Operation.ADD;
+import static ru.yandex.practicum.filmorate.model.enums.Operation.REMOVE;
 
 @Service("DbFilmService")
 public class DbFilmService implements FilmService {
     private final FilmStorage storage;
-    private final GenreDao genreDao;
-    private final UserService userService;
+    private final DirectorStorage directorStorage;
+    private final UserStorage userStorage;
+    private final GenreService genreService;
+    private final DirectorService directorService;
+    private final FeedStorage feedStorage;
 
     @Autowired
     public DbFilmService(@Qualifier("FilmDbStorage") FilmStorage storage,
-                         GenreDao genreDao,
-                         @Qualifier("DbUserService") UserService userService) {
+                         DirectorStorage directorStorage,
+                         @Qualifier("UserDbStorage") UserStorage userStorage,
+                         GenreService genreService, DirectorService directorService, FeedStorage feedStorage) {
         this.storage = storage;
-        this.genreDao = genreDao;
-        this.userService = userService;
+        this.directorStorage = directorStorage;
+        this.userStorage = userStorage;
+        this.genreService = genreService;
+        this.directorService = directorService;
+        this.feedStorage = feedStorage;
     }
 
     @Override
     public List<Film> listFilms() {
         List<Film> films = storage.listFilms();
-        return getFilmsWithGenres(films);
+        return directorService.getFilmsWithDirectors(genreService.getFilmsWithGenres(films));
     }
 
     @Override
-    public List<Film> listTopFilms(Integer count) {
+    public List<Film> listTopFilms(int count) {
         List<Film> topFilms = storage.listTopFilms(count);
-        return getFilmsWithGenres(topFilms);
+        topFilms = genreService.getFilmsWithGenres(topFilms);
+        return directorService.getFilmsWithDirectors(topFilms);
+    }
+
+    @Override
+    public List<Film> listTopFilms(int count, Optional<Integer> year, Optional<Integer> genreId) {
+        List<Film> topFilms;
+        if (year.isEmpty() && genreId.isEmpty()) {
+            return listTopFilms(count);
+        }
+
+        if (year.isPresent()) {
+            if (genreId.isEmpty()) {
+                topFilms = storage.listTopFilmsByYear(count, year.get());
+                topFilms = genreService.getFilmsWithGenres(topFilms);
+            } else {
+                topFilms = storage.listTopFilmsByYear(year.get());
+            }
+        } else {
+            topFilms = storage.listTopFilms();
+        }
+
+        if (genreId.isPresent()) {
+            Genre genre = genreService.findGenreById(genreId.get());
+            topFilms = genreService.getFilmsWithGenres(topFilms).stream()
+                    .filter(film -> film.getGenres().contains(genre))
+                    .limit(count)
+                    .collect(Collectors.toList());
+        }
+        return directorService.getFilmsWithDirectors(topFilms);
+    }
+
+    @Override
+    public List<Film> findFilmsByQuery(String query, String[] by) {
+        Set<Long> filmIds = new HashSet<>();
+        Collection<String> strings = new HashSet<>(Arrays.asList(by));
+        if (strings.contains("director")) {
+            filmIds.addAll(storage.findFilmIdsByDirectorQuery(query));
+        }
+        if (strings.contains("title")) {
+            filmIds.addAll(storage.findFilmIdsByTitleQuery(query));
+        }
+        List<Film> topFilms = storage.listTopFilms(new ArrayList<>(filmIds));
+        return directorService.getFilmsWithDirectors(genreService.getFilmsWithGenres(topFilms));
+    }
+
+    @Override
+    public List<Film> findCommonFilms(Long userId, Long friendId) {
+        userStorage.findUserById(userId);
+        userStorage.findUserById(friendId);
+        List<Long> filmIds = storage.findCommonFilmIds(userId, friendId);
+        return directorService.getFilmsWithDirectors(genreService.getFilmsWithGenres(storage.listTopFilms(filmIds)));
     }
 
     @Override
     public Film findFilmById(long id) {
         Film film = storage.findFilmById(id);
-        genreDao.getGenresByFilm(film.getId())
+        directorStorage.getDirectorsByFilm(film.getId())
+                .forEach(film::addDirector);
+        genreService.getGenresByFilm(film.getId())
                 .forEach(film::addGenre);
         return film;
     }
@@ -64,26 +129,53 @@ public class DbFilmService implements FilmService {
     @Override
     public List<Long> addLike(long filmId, long userId) {
         findFilmById(filmId);
-        userService.findUserById(userId);
+        userStorage.findUserById(userId);
+        //проверка на наличие лайка: в тестах два раза добавляется лайк (3, 1), и оба раза записывается feed
+        List<Long> likes = storage.getLikesByFilm(filmId);
+        feedStorage.addFeed(filmId, userId, LIKE, ADD);
+        if (likes.contains(userId)) {
+            return likes;
+        }
         storage.addLike(filmId, userId);
-        return storage.getLikesByFilm(filmId);
+        likes.add(userId);
+        return likes;
     }
 
     @Override
     public List<Long> deleteLike(long filmId, long userId) {
         findFilmById(filmId);
-        userService.findUserById(userId);
+        userStorage.findUserById(userId);
         storage.deleteLike(filmId, userId);
+        feedStorage.addFeed(filmId, userId, LIKE, REMOVE);
         return storage.getLikesByFilm(filmId);
     }
 
-    private List<Film> getFilmsWithGenres(List<Film> films) {
-        List<Long> filmIds = films.stream()
-                .map(Film::getId).collect(Collectors.toList());
-        Map<Long, Set<Genre>> genresByFilmList = genreDao.getGenresByFilmList(filmIds);
-        return films.stream()
-                .peek(film -> genresByFilmList.getOrDefault(film.getId(), new HashSet<>())
-                        .forEach(film::addGenre))
+    @Override
+    public List<Film> listFilmsByDirector(long directorId, Optional<String> sortParam) {
+        Director director = directorStorage.findDirectorById(directorId);
+        if (sortParam.isPresent()) {
+            if (sortParam.get().equals("year")) {
+                return directorService.getFilmsWithDirectors(listFilms())
+                        .stream()
+                        .filter(film -> film.getDirectors().contains(director))
+                        .sorted(Comparator.comparing((Film film) -> film.getReleaseDate().getYear()))
+                        .collect(Collectors.toList());
+            } else if (sortParam.get().equals("likes")) {
+                List<Film> topFilms = genreService.getFilmsWithGenres(storage.listTopFilms());
+                return directorService.getFilmsWithDirectors(topFilms)
+                        .stream()
+                        .filter(film -> film.getDirectors().contains(director))
+                        .collect(Collectors.toList());
+            }
+        }
+        return directorService.getFilmsWithDirectors(listFilms())
+                .stream()
+                .filter(film -> film.getDirectors().contains(director))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean deleteFilm(long id) {
+        return storage.deleteFilm(id);
     }
 }

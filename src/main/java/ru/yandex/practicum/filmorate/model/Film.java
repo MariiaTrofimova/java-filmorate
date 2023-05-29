@@ -29,6 +29,7 @@ public class Film {
     private int duration;
     private Mpa mpa;
     private final Set<Genre> genres = new HashSet<>();
+    private final Set<Director> directors = new HashSet<>();
     private final Set<Long> likes = new HashSet<>(); //id пользователей, поставивших лайки
     //я бы оставила как параметр фильма, удалила лишние dao и модели, являющиеся не сущностями, а связями
 
@@ -51,6 +52,21 @@ public class Film {
     public boolean deleteGenre(Genre genre) {
         return genres.remove(genre);
     }
+
+    public List<Director> getDirectors() {
+        return directors.stream()
+                .sorted(Comparator.comparing(Director::getId))
+                .collect(Collectors.toList());
+    }
+
+    public void addDirector(Director director) {
+        directors.add(director);
+    }
+
+    public boolean deleteDirector(Director director) {
+        return directors.remove(director);
+    }
+
 
     public Map<String, Object> toMap() {
         Map<String, Object> values = new HashMap<>();

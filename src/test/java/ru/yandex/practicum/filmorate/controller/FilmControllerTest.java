@@ -18,6 +18,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertNotNull;
@@ -30,22 +31,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(FilmController.class)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class FilmControllerTest {
-    @Autowired
-    private MockMvc mockMvc;
-
     @MockBean
     @Qualifier("DbFilmService")
     private final FilmService service;
-
-    Film film;
-    String url = "/films";
     private final LocalDate testReleaseDate = LocalDate.of(2000, 1, 1);
     private final int duration = 90;
-
+    Film film;
+    String url = "/films";
     Film.FilmBuilder filmBuilder;
-
     ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
             .setDateFormat(new SimpleDateFormat("yyyy-MM-dd"));
+    @Autowired
+    private MockMvc mockMvc;
 
     @BeforeEach
     void setupBuilder() {
@@ -355,7 +352,7 @@ class FilmControllerTest {
 
     @Test
     void shouldListEmptyListTopFilms() throws Exception {
-        when(service.listTopFilms(10)).thenReturn(Collections.EMPTY_LIST);
+        when(service.listTopFilms(10, Optional.empty(), Optional.empty())).thenReturn(Collections.EMPTY_LIST);
         this.mockMvc
                 .perform(get(url + "/popular?count="))
                 .andDo(print())
@@ -367,7 +364,7 @@ class FilmControllerTest {
     void shouldListTopFilms() throws Exception {
         Film film1 = filmBuilder.id(1).name("Film name1").build();
         Film film2 = filmBuilder.id(2).name("Film name2").build();
-        when(service.listTopFilms(2)).thenReturn(List.of(film1, film2));
+        when(service.listTopFilms(2, Optional.empty(), Optional.empty())).thenReturn(List.of(film1, film2));
 
         mockMvc.perform(get(url + "/popular?count=2"))
                 .andDo(print())
@@ -380,6 +377,16 @@ class FilmControllerTest {
     void shouldAddLike() throws Exception {
         when(service.addLike(1, 1)).thenReturn(List.of(1L));
         mockMvc.perform(put(url + "/1/like/1"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()", is(1)))
+                .andExpect(jsonPath("$[0]", is(1)));
+    }
+
+    @Test
+    void shouldAddLikeToFilm3FromUser1() throws Exception {
+        when(service.addLike(3, 1)).thenReturn(List.of(1L));
+        mockMvc.perform(put(url + "/3/like/1"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()", is(1)))

@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -35,8 +36,32 @@ public class FilmController {
 
     @GetMapping("/popular")
     public List<Film> listTopFilms(
-            @RequestParam(defaultValue = "10") Integer count) {
-        return service.listTopFilms(count);
+            @RequestParam(defaultValue = "10") int count,
+            @RequestParam Optional<Integer> year,
+            @RequestParam Optional<Integer> genreId) {
+        return service.listTopFilms(count, year, genreId);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public List<Film> listFilmsByOneDirector(
+            @PathVariable long directorId,
+            @RequestParam Optional<String> sortBy) {
+        return service.listFilmsByDirector(directorId, sortBy);
+    }
+
+    @GetMapping("/search")
+    public List<Film> findFilmsByTitleAndDirector(
+            @RequestParam String query,
+            @RequestParam String[] by) {
+        return service.findFilmsByQuery(query, by);
+    }
+
+    @GetMapping("/common")
+    public List<Film> findCommonFilms(
+            @RequestParam Long userId,
+            @RequestParam Long friendId
+    ) {
+        return service.findCommonFilms(userId, friendId);
     }
 
     @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
@@ -48,6 +73,11 @@ public class FilmController {
     @PutMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public Film updateFilm(@Valid @RequestBody Film film) {
         return service.updateFilm(film);
+    }
+
+    @DeleteMapping("/{id}")
+    public boolean deleteFilm(@PathVariable long id) {
+        return service.deleteFilm(id);
     }
 
     @PutMapping("/{id}/like/{userId}")

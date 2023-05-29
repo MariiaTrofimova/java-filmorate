@@ -30,20 +30,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class UserControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
     @MockBean
     @Qualifier("DbUserService")
     private final UserService service;
-
     User user;
     String url = "/users";
-
     User.UserBuilder userBuilder;
-
     ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
             .setDateFormat(new SimpleDateFormat("yyyy-MM-dd"));
+    @Autowired
+    private MockMvc mockMvc;
 
     @BeforeEach
     void setupBuilder() {

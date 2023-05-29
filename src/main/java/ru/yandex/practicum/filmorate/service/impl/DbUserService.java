@@ -4,23 +4,42 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Feed;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.FriendshipDao;
+import ru.yandex.practicum.filmorate.storage.FeedStorage;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import static ru.yandex.practicum.filmorate.model.enums.EventType.FRIEND;
+import static ru.yandex.practicum.filmorate.model.enums.Operation.*;
 
 @Service("DbUserService")
 @Slf4j
 public class DbUserService implements UserService {
     private final UserStorage storage;
-    private final FriendshipDao friendshipDao;
+    private final FriendshipStorage friendshipStorage;
+    private final FilmStorage filmStorage;
+    private final GenreService genreService;
+    private final FeedStorage feedStorage;
 
-    public DbUserService(@Qualifier("UserDbStorage") UserStorage storage, FriendshipDao friendshipDao) {
+
+    public DbUserService(@Qualifier("UserDbStorage") UserStorage storage,
+                         FriendshipStorage friendshipStorage, FilmStorage filmStorage, GenreService genreService,
+                         FeedStorage feedStorage) {
         this.storage = storage;
-        this.friendshipDao = friendshipDao;
+        this.friendshipStorage = friendshipStorage;
+        this.feedStorage = feedStorage;
+        this.filmStorage = filmStorage;
+        this.genreService = genreService;
     }
 
     @Override
@@ -44,8 +63,14 @@ public class DbUserService implements UserService {
     }
 
     @Override
+    public boolean deleteUser(long id) {
+        return storage.deleteUser(id);
+    }
+
+    @Override
     public List<User> listFriends(long id) {
-        return friendshipDao.getFriendsByUser(id).stream()
+        findUserById(id);
+        return friendshipStorage.getFriendsByUser(id).stream()
                 .map(this::findUserById)
                 .collect(Collectors.toList());
     }
@@ -54,8 +79,8 @@ public class DbUserService implements UserService {
     public List<User> listCommonFriends(long id, long otherId) {
         findUserById(id);
         findUserById(otherId);
-        return friendshipDao.getFriendsByUser(id).stream()
-                .filter(friendshipDao.getFriendsByUser(otherId)::contains)
+        return friendshipStorage.getFriendsByUser(id).stream()
+                .filter(friendshipStorage.getFriendsByUser(otherId)::contains)
                 .map(this::findUserById)
                 .collect(Collectors.toList());
     }
@@ -64,37 +89,79 @@ public class DbUserService implements UserService {
     public List<Long> addFriend(long id, long friendId) {
         findUserById(id);
         findUserById(friendId);
-        boolean isUserToFriend = friendshipDao.getFriendsByUser(id).contains(friendId);
-        boolean isFriendToUser = friendshipDao.getFriendsByUser(friendId).contains(id);
+        boolean isUserToFriend = friendshipStorage.getFriendsByUser(id).contains(friendId);
+        boolean isFriendToUser = friendshipStorage.getFriendsByUser(friendId).contains(id);
         if (!isUserToFriend && !isFriendToUser) {
-            friendshipDao.addFriend(id, friendId);
+            friendshipStorage.addFriend(id, friendId);
+            feedStorage.addFeed(friendId, id, FRIEND, ADD);
         } else if (isUserToFriend && !isFriendToUser) {
-            friendshipDao.updateFriend(friendId, id, true);
+            friendshipStorage.updateFriend(friendId, id, true);
+            feedStorage.addFeed(friendId, id, FRIEND, UPDATE);
         } else {
             log.debug("Повторный запрос в друзья от пользователя с id {} пользователю с id {}", id, friendId);
         }
-        return friendshipDao.getFriendsByUser(id);
+        return friendshipStorage.getFriendsByUser(id);
     }
 
     @Override
     public List<Long> deleteFriend(long id, long friendId) {
         findUserById(id);
         findUserById(friendId);
-        boolean isUserHasFriend = friendshipDao.getFriendsByUser(id).contains(friendId);
-        boolean isFriendHasUser = friendshipDao.getFriendsByUser(friendId).contains(id);
+        boolean isUserHasFriend = friendshipStorage.getFriendsByUser(id).contains(friendId);
+        boolean isFriendHasUser = friendshipStorage.getFriendsByUser(friendId).contains(id);
         if (!isUserHasFriend) {
             log.warn("Пользователь c id {} не является другом пользователя c id {}", friendId, id);
             throw new NotFoundException(
                     String.format("Пользователь c id %d не является другом пользователя c id %d",
                             friendId, id));
         } else if (!isFriendHasUser) {
-            friendshipDao.deleteFriend(friendId, id);
+            friendshipStorage.deleteFriend(friendId, id);
+            feedStorage.addFeed(friendId, id, FRIEND, REMOVE);
         } else {
-            if (!friendshipDao.updateFriend(id, friendId, false)) {
-                friendshipDao.deleteFriend(friendId, id);
-                friendshipDao.addFriend(id, friendId);
+            if (!friendshipStorage.updateFriend(id, friendId, false)) {
+                friendshipStorage.deleteFriend(friendId, id);
+                friendshipStorage.addFriend(id, friendId);
+                feedStorage.addFeed(friendId, id, FRIEND, REMOVE);
             }
         }
-        return friendshipDao.getFriendsByUser(id);
+        return friendshipStorage.getFriendsByUser(id);
+    }
+
+    @Override
+    public List<Film> recommendations(long userId) {
+        Map<Long, List<Long>> usersLikes = filmStorage.getUserIdsLikedFilmIds();
+        if (usersLikes.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Long> userLikes = usersLikes.getOrDefault(userId, Collections.emptyList());
+        usersLikes.remove(userId);
+
+        long matchesMax = 0;
+        long userIdMax = -1L;
+        for (Map.Entry<Long, List<Long>> userOtherLikes : usersLikes.entrySet()) {
+            long matches = userOtherLikes.getValue().stream()
+                    .filter(userLikes::contains)
+                    .count();
+            if (matches > matchesMax) {
+                matchesMax = matches;
+                userIdMax = userOtherLikes.getKey();
+            }
+        }
+        if (matchesMax == 0) {
+            return Collections.emptyList();
+        }
+
+        List<Long> filmIds = usersLikes.getOrDefault(userIdMax, Collections.emptyList()).stream()
+                .filter(film -> !userLikes.contains(film))
+                .collect(Collectors.toList());
+        return genreService.getFilmsWithGenres(
+                filmStorage.listTopFilms(filmIds));
+
+    }
+
+    @Override
+    public List<Feed> getFeedByUserId(long id) {
+        storage.findUserById(id);
+        return feedStorage.findByUserId(id);
     }
 }

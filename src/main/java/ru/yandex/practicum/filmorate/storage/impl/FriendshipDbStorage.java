@@ -2,15 +2,15 @@ package ru.yandex.practicum.filmorate.storage.impl;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.storage.FriendshipDao;
+import ru.yandex.practicum.filmorate.storage.FriendshipStorage;
 
 import java.util.List;
 
 @Repository
-public class FriendshipDaoImpl implements FriendshipDao {
+public class FriendshipDbStorage implements FriendshipStorage {
     private final JdbcTemplate jdbcTemplate;
 
-    public FriendshipDaoImpl(JdbcTemplate jdbcTemplate) {
+    public FriendshipDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
