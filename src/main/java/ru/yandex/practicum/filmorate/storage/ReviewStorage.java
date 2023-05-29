@@ -14,10 +14,6 @@ public interface ReviewStorage {
 
     boolean deleteReviewById(long id);
 
-/*    List<Review> findAllReview();
-
-    long findUsefulByReviewID(long id);*/
-
     List<Review> findTopReviews(int count);
 
     List<Review> findTopReviewsByFilmId(Long filmId, int count);
