@@ -18,8 +18,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static ru.yandex.practicum.filmorate.model.enums.EventType.LIKE;
-import static ru.yandex.practicum.filmorate.model.enums.Operation.ADD;
-import static ru.yandex.practicum.filmorate.model.enums.Operation.REMOVE;
+import static ru.yandex.practicum.filmorate.model.enums.EventType.MARK;
+import static ru.yandex.practicum.filmorate.model.enums.Operation.*;
 
 @Service("DbFilmService")
 public class DbFilmService implements FilmService {
@@ -128,23 +128,27 @@ public class DbFilmService implements FilmService {
 
     @Override
     public boolean addMark(long filmId, long userId, int mark) {
-        findFilmById(filmId);
-        userStorage.findUserById(userId);
+//        findFilmById(filmId);
+//        userStorage.findUserById(userId);
         //проверка на наличие лайка: в тестах два раза добавляется лайк (3, 1), и оба раза записывается feed
         Set<Long> userMark = storage.getMarksByFilm(filmId).keySet();
-        //feedStorage.addFeed(filmId, userId, LIKE, ADD);
         if (userMark.contains(userId)) {
-            return true;
+            feedStorage.addFeed(filmId, userId, MARK, UPDATE);
+            return storage.updateMark(filmId, userId, mark);
         }
+        feedStorage.addFeed(filmId, userId, MARK, ADD);
         return storage.addMark(filmId, userId, mark);
     }
 
     @Override
     public boolean deleteMark(long filmId, long userId) {
-        findFilmById(filmId);
-        userStorage.findUserById(userId);
-        return storage.deleteMark(filmId, userId);
-        //feedStorage.addFeed(filmId, userId, LIKE, REMOVE);
+//        findFilmById(filmId);
+//        userStorage.findUserById(userId);
+        if (storage.deleteMark(filmId, userId)) {
+            feedStorage.addFeed(filmId, userId, MARK, REMOVE);
+            return true;
+        }
+        return false;
     }
 
     @Override

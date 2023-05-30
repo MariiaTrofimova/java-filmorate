@@ -129,7 +129,7 @@ public class DbUserService implements UserService {
 
     @Override
     public List<Film> recommendations(long userId) {
-        Map<Long, List<Long>> usersLikes = filmStorage.getUserIdsLikedFilmIds();
+        Map<Long, List<Long>> usersLikes = filmStorage.getUserIdsWithMarkedFilmIdsAndMarks();
         if (usersLikes.isEmpty()) {
             return Collections.emptyList();
         }

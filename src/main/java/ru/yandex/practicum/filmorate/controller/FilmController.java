@@ -86,7 +86,7 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}/userId/{userId}")
-    public boolean deleteLike(@PathVariable long id, @PathVariable long userId) {
+    public boolean deleteMark(@PathVariable long id, @PathVariable long userId) {
         return service.deleteMark(id, userId);
     }
 }

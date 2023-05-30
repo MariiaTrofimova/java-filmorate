@@ -36,6 +36,8 @@ public interface FilmStorage {
 
     boolean addMark(long filmId, long userId, int mark);
 
+    boolean updateMark(long filmId, long userId, int mark);
+
     boolean deleteMark(long filmId, long userId);
 
     void addDirectorToFilm(long filmId, long directorId);
@@ -48,5 +50,5 @@ public interface FilmStorage {
 
     List<Long> findCommonFilmIds(Long userId, Long friendId);
 
-    Map<Long, List<Long>> getUserIdsMarkFilmIds();
+    Map<Long, List<Long>> getUserIdsWithMarkedFilmIdsAndMarks();
 }

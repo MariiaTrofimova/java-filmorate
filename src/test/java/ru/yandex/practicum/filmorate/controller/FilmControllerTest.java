@@ -374,8 +374,8 @@ class FilmControllerTest {
     }
 
     @Test
-    void shouldAddLike() throws Exception {
-        when(service.addMark(1, 1, 8)).thenReturn(List.of(1L));
+    void shouldAddMark() throws Exception {
+        //when(service.addMark(1, 1, 8)).thenReturn(List.of(1L));
         mockMvc.perform(put(url + "/1/userId/1"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -384,8 +384,8 @@ class FilmControllerTest {
     }
 
     @Test
-    void shouldAddLikeToFilm3FromUser1() throws Exception {
-        when(service.addMark(3, 1, 7)).thenReturn(List.of(1L));
+    void shouldAddMarkToFilm3FromUser1() throws Exception {
+        //when(service.addMark(3, 1, 7)).thenReturn(List.of(1L));
         mockMvc.perform(put(url + "/3/userId/1"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -394,8 +394,8 @@ class FilmControllerTest {
     }
 
     @Test
-    void shouldDeleteLike() throws Exception {
-        when(service.deleteMark(1, 1)).thenReturn(Collections.EMPTY_LIST);
+    void shouldDeleteMark() throws Exception {
+       // when(service.deleteMark(1, 1)).thenReturn(Collections.EMPTY_LIST);
         mockMvc.perform(delete(url + "/1/userId/1"))
                 .andDo(print())
                 .andExpect(status().isOk())

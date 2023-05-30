@@ -203,7 +203,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Map<Long, List<Long>> getUserIdsMarkFilmIds() {
+    public Map<Long, List<Long>> getUserIdsWithMarkedFilmIdsAndMarks() {
         String sql = "select user_id, film_id from marks";
         final Map<Long, List<Long>> userIdsFilmsIds = new HashMap<>();
 
@@ -263,6 +263,11 @@ public class FilmDbStorage implements FilmStorage {
         String sql = "insert into marks(film_id, user_id, mark) " +
                 "values (?, ?, ?)";
         return jdbcTemplate.update(sql, filmId, userId, mark) > 0;
+    }
+
+    public boolean updateMark(long filmId, long userId, int mark) {
+        String sql = "update marks set mark = ? where (film_id = ? AND user_id = ?)";
+        return jdbcTemplate.update(sql, mark, filmId, userId) > 0;
     }
 
     @Override
