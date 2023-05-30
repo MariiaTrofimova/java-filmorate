@@ -127,27 +127,24 @@ public class DbFilmService implements FilmService {
     }
 
     @Override
-    public List<Long> addLike(long filmId, long userId) {
+    public boolean addMark(long filmId, long userId, int mark) {
         findFilmById(filmId);
         userStorage.findUserById(userId);
         //проверка на наличие лайка: в тестах два раза добавляется лайк (3, 1), и оба раза записывается feed
-        List<Long> likes = storage.getLikesByFilm(filmId);
-        feedStorage.addFeed(filmId, userId, LIKE, ADD);
-        if (likes.contains(userId)) {
-            return likes;
+        Set<Long> userMark = storage.getMarksByFilm(filmId).keySet();
+        //feedStorage.addFeed(filmId, userId, LIKE, ADD);
+        if (userMark.contains(userId)) {
+            return true;
         }
-        storage.addLike(filmId, userId);
-        likes.add(userId);
-        return likes;
+        return storage.addMark(filmId, userId, mark);
     }
 
     @Override
-    public List<Long> deleteLike(long filmId, long userId) {
+    public boolean deleteMark(long filmId, long userId) {
         findFilmById(filmId);
         userStorage.findUserById(userId);
-        storage.deleteLike(filmId, userId);
-        feedStorage.addFeed(filmId, userId, LIKE, REMOVE);
-        return storage.getLikesByFilm(filmId);
+        return storage.deleteMark(filmId, userId);
+        //feedStorage.addFeed(filmId, userId, LIKE, REMOVE);
     }
 
     @Override

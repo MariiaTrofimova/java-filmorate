@@ -32,11 +32,11 @@ public interface FilmStorage {
 
     boolean clearGenresFromFilm(long filmId);
 
-    List<Long> getLikesByFilm(long filmId);
+    Map<Long, Integer> getMarksByFilm(long filmId);
 
-    boolean addLike(long filmId, long userId);
+    boolean addMark(long filmId, long userId, int mark);
 
-    boolean deleteLike(long filmId, long userId);
+    boolean deleteMark(long filmId, long userId);
 
     void addDirectorToFilm(long filmId, long directorId);
 
@@ -48,5 +48,5 @@ public interface FilmStorage {
 
     List<Long> findCommonFilmIds(Long userId, Long friendId);
 
-    Map<Long, List<Long>> getUserIdsLikedFilmIds();
+    Map<Long, List<Long>> getUserIdsMarkFilmIds();
 }
