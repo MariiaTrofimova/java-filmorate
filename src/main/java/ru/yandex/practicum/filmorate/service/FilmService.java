@@ -23,7 +23,7 @@ public interface FilmService {
 
     List<Film> findCommonFilms(Long userId, Long friendId);
 
-    boolean addMark(long filmId, long userId, int mark);
+    void addMark(long filmId, long userId, byte mark);
 
     boolean deleteMark(long filmId, long userId);
 

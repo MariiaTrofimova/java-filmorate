@@ -1035,7 +1035,7 @@ class FilmorateApplicationTests {
                 .isEqualTo(Collections.EMPTY_LIST);
 
         filmStorage.addFilm(filmBuilder.build());
-        filmService.addMark(1L, 1L, 9);
+        filmService.addMark(1L, 1L, (byte) 9);
         feed = feedStorage.findByUserId(1L);
         assertEquals(1, feed.size());
     }

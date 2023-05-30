@@ -248,11 +248,10 @@ public class FilmDbStorage implements FilmStorage {
     public Map<Long, Integer> getMarksByFilm(long filmId) {
         String sql = "select user_id, mark from marks where film_id =?";
         final Map<Long, Integer> userIdsMarks = new HashMap<>();
-        //return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getLong("user_id"), filmId);
         jdbcTemplate.query(sql,
                 rs -> {
                     long userId = rs.getLong("user_id");
-                    Integer mark = rs.getInt("mark");
+                    int mark = rs.getInt("mark");
                     userIdsMarks.put(userId, mark);
                 });
         return userIdsMarks;
@@ -265,6 +264,7 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.update(sql, filmId, userId, mark) > 0;
     }
 
+    @Override
     public boolean updateMark(long filmId, long userId, int mark) {
         String sql = "update marks set mark = ? where (film_id = ? AND user_id = ?)";
         return jdbcTemplate.update(sql, mark, filmId, userId) > 0;

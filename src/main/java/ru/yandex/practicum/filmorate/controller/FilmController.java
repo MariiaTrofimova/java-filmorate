@@ -81,8 +81,8 @@ public class FilmController {
     }
 
     @PutMapping("/{id}/userId/{userId}/mark/{mark}")
-    public boolean addMark(@PathVariable long id, @PathVariable long userId, @PathVariable int mark) {
-        return service.addMark(id, userId, mark);
+    public void addMark(@PathVariable long id, @PathVariable long userId, @PathVariable byte mark) {
+        service.addMark(id, userId, mark);
     }
 
     @DeleteMapping("/{id}/userId/{userId}")
