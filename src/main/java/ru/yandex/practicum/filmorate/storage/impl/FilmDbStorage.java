@@ -203,8 +203,8 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Map<Long, List<Long>> getUserIdsLikedFilmIds() {
-        String sql = "select user_id, film_id from likes";
+    public Map<Long, List<Long>> getUserIdsWithMarkedFilmIdsAndMarks() {
+        String sql = "select user_id, film_id from marks";
         final Map<Long, List<Long>> userIdsFilmsIds = new HashMap<>();
 
         jdbcTemplate.query(sql,
@@ -245,21 +245,34 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Long> getLikesByFilm(long filmId) {
-        String sql = "select user_id from likes where film_id =?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getLong("user_id"), filmId);
+    public Map<Long, Integer> getMarksByFilm(long filmId) {
+        String sql = "select user_id, mark from marks where film_id =?";
+        final Map<Long, Integer> userIdsMarks = new HashMap<>();
+        jdbcTemplate.query(sql,
+                rs -> {
+                    long userId = rs.getLong("user_id");
+                    int mark = rs.getInt("mark");
+                    userIdsMarks.put(userId, mark);
+                });
+        return userIdsMarks;
     }
 
     @Override
-    public boolean addLike(long filmId, long userId) {
-        String sql = "insert into likes(film_id, user_id) " +
-                "values (?, ?)";
-        return jdbcTemplate.update(sql, filmId, userId) > 0;
+    public boolean addMark(long filmId, long userId, int mark) {
+        String sql = "insert into marks(film_id, user_id, mark) " +
+                "values (?, ?, ?)";
+        return jdbcTemplate.update(sql, filmId, userId, mark) > 0;
     }
 
     @Override
-    public boolean deleteLike(long filmId, long userId) {
-        String sql = "delete from likes where (film_id = ? AND user_id = ?)";
+    public boolean updateMark(long filmId, long userId, int mark) {
+        String sql = "update marks set mark = ? where (film_id = ? AND user_id = ?)";
+        return jdbcTemplate.update(sql, mark, filmId, userId) > 0;
+    }
+
+    @Override
+    public boolean deleteMark(long filmId, long userId) {
+        String sql = "delete from marks where (film_id = ? AND user_id = ?)";
         return jdbcTemplate.update(sql, filmId, userId) > 0;
     }
 
