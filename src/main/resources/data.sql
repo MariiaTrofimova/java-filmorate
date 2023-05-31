@@ -22,7 +22,7 @@ from FILM_GENRE;
 delete
 from FRIENDSHIP;
 delete
-from LIKES;
+from MARKS;
 delete
 from DIRECTORS;
 delete
