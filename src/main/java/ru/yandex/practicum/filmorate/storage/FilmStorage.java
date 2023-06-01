@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage;
 
 import ru.yandex.practicum.filmorate.model.Film;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,6 +24,7 @@ public interface FilmStorage {
     List<Film> listTopFilmsByYear(int count, int year);
 
     List<Film> listTopFilmsByYear(int year);
+
     List<Film> listTopFilmsByDirector(long directorId);
 
     boolean deleteFilm(long id);
@@ -51,5 +53,5 @@ public interface FilmStorage {
 
     List<Long> findCommonFilmIds(Long userId, Long friendId);
 
-    Map<Long, List<Long>> getUserIdsWithMarkedFilmIdsAndMarks();
+    Map<Long, HashMap<Long, Integer>> getUserIdsWithMarkedFilmIdsAndMarks();
 }

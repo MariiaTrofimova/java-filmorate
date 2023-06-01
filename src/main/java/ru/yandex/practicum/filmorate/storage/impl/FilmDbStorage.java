@@ -18,7 +18,6 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,9 +96,9 @@ public class FilmDbStorage implements FilmStorage {
         String sql = "SELECT f.*, m.name AS mpa_name, AVG(mk.mark) AS mark_rating " +
                 "FROM films AS f " +
                 "JOIN mpa AS m ON f.mpa_id = m.mpa_id " +
-                "JOIN marks AS mk ON f.film_id = mk.film_id " +
+                "LEFT JOIN marks AS mk ON f.film_id = mk.film_id " +
                 "GROUP BY f.film_id " +
-                "HAVING AVG(mk.mark) > 5 " +
+                //"HAVING AVG(mk.mark) > 5 " +
                 "ORDER BY mark_rating DESC " +
                 "LIMIT ?";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), count, count);
@@ -111,9 +110,9 @@ public class FilmDbStorage implements FilmStorage {
         String sql = "SELECT f.*, m.name AS mpa_name, AVG(mk.mark) AS mark_rating " +
                 "FROM films AS f " +
                 "JOIN mpa AS m ON f.mpa_id = m.mpa_id " +
-                "JOIN marks AS mk ON f.film_id = mk.film_id " +
+                "LEFT JOIN marks AS mk ON f.film_id = mk.film_id " +
                 "GROUP BY f.film_id " +
-                "HAVING AVG(mk.mark) > 5 " +
+                //"HAVING AVG(mk.mark) > 5 " +
                 "ORDER BY mark_rating DESC";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs));
     }
@@ -123,10 +122,10 @@ public class FilmDbStorage implements FilmStorage {
         String sql = "SELECT f.*, m.name AS mpa_name, AVG(mk.mark) AS mark_rating " +
                 "FROM films AS f " +
                 "JOIN mpa AS m ON f.mpa_id = m.mpa_id " +
-                "JOIN marks AS mk ON f.film_id = mk.film_id " +
+                "LEFT JOIN marks AS mk ON f.film_id = mk.film_id " +
                 "WHERE f.film_id IN (:ids) " +
                 "GROUP BY f.film_id " +
-                "HAVING AVG(mk.mark) > 5 " +
+                //"HAVING AVG(mk.mark) > 5 " +
                 "ORDER BY mark_rating DESC";
 
         SqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
@@ -138,26 +137,24 @@ public class FilmDbStorage implements FilmStorage {
         String sql = "SELECT f.*, m.name AS mpa_name, AVG(mk.mark) AS mark_rating " +
                 "FROM films AS f " +
                 "JOIN mpa AS m ON f.mpa_id = m.mpa_id " +
-                "JOIN marks AS mk ON f.film_id = mk.film_id " +
+                "LEFT JOIN marks AS mk ON f.film_id = mk.film_id " +
                 "WHERE EXTRACT(YEAR FROM f.release_date) = ? " +
                 "GROUP BY f.film_id " +
-                "HAVING AVG(mk.mark) > 5 " +
+                //"HAVING AVG(mk.mark) > 5 " +
                 "ORDER BY mark_rating DESC " +
                 "LIMIT ?";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), year, count);
     }
-
-
 
     @Override
     public List<Film> listTopFilmsByYear(int year) {
         String sql = "SELECT f.*, m.name AS mpa_name, AVG(mk.mark) AS mark_rating " +
                 "FROM films AS f " +
                 "JOIN mpa AS m ON f.mpa_id = m.mpa_id " +
-                "JOIN marks AS mk ON f.film_id = mk.film_id " +
+                "LEFT JOIN marks AS mk ON f.film_id = mk.film_id " +
                 "WHERE EXTRACT(year FROM f.release_date) = ? " +
                 "GROUP BY f.film_id, m.name " +
-                "HAVING AVG(mk.mark) > 5 " +
+                //"HAVING AVG(mk.mark) > 5 " +
                 "ORDER BY mark_rating DESC";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), year);
     }
@@ -193,16 +190,17 @@ public class FilmDbStorage implements FilmStorage {
                 new MapSqlParameterSource("query", "%" + query.toLowerCase() + "%");
         return namedJdbcTemplate.queryForList(sql, param, Long.class);
     }
+
     @Override
     public List<Film> listTopFilmsByDirector(long directorId) {
         String sql = "SELECT f.*, m.name AS mpa_name, AVG(mk.mark) AS mark_rating " +
                 "FROM films AS f " +
                 "JOIN mpa AS m ON f.mpa_id = m.mpa_id " +
                 "JOIN film_director AS fd ON f.film_id = fd.film_id " +
-                "JOIN marks AS mk ON f.film_id = mk.film_id " +
+                "LEFT JOIN marks AS mk ON f.film_id = mk.film_id " +
                 "WHERE fd.director_id = ? " +
                 "GROUP BY f.film_id, m.name " +
-                "HAVING AVG(mk.mark) > 5 " +
+                //"HAVING AVG(mk.mark) > 5 " +
                 "ORDER BY mark_rating DESC";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), directorId);
     }
@@ -210,23 +208,24 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Long> findCommonFilmIds(Long userId, Long friendId) {
-        String sql = "select film_id from likes " +
+        String sql = "select film_id from marks " +
                 "where user_id in (?, ?) " +
                 "group by film_id having count(user_id) = 2 ";
         return jdbcTemplate.queryForList(sql, Long.class, userId, friendId);
     }
 
     @Override
-    public Map<Long, List<Long>> getUserIdsWithMarkedFilmIdsAndMarks() {
-        String sql = "select user_id, film_id from marks";
-        final Map<Long, List<Long>> userIdsFilmsIds = new HashMap<>();
+    public Map<Long, HashMap<Long, Integer>> getUserIdsWithMarkedFilmIdsAndMarks() {
+        String sql = "select user_id, film_id, mark from marks";
+        final Map<Long, HashMap<Long, Integer>> userIdsFilmsIds = new HashMap<>();
 
         jdbcTemplate.query(sql,
                 rs -> {
                     long userId = rs.getLong("user_id");
                     long filmId = rs.getLong("film_id");
-                    userIdsFilmsIds.computeIfAbsent(userId, k -> new ArrayList<>())
-                            .add(filmId);
+                    int mark = rs.getInt("mark");
+                    userIdsFilmsIds.computeIfAbsent(userId, k -> new HashMap<>())
+                            .put(filmId, mark);
                 });
         return userIdsFilmsIds;
 
@@ -261,19 +260,19 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Map<Long, Integer> getMarksByFilm(long filmId) {
         String sql = "select user_id, mark from marks where film_id =?";
-        final Map<Long, Integer> userIdsMarks = new HashMap<>();
+        Map<Long, Integer> userIdsMarks = new HashMap<>();
         jdbcTemplate.query(sql,
                 rs -> {
                     long userId = rs.getLong("user_id");
                     int mark = rs.getInt("mark");
                     userIdsMarks.put(userId, mark);
-                });
+                }, filmId);
         return userIdsMarks;
     }
 
     @Override
     public boolean addMark(long filmId, long userId, int mark) {
-        String sql = "insert into marks(film_id, user_id, mark) " +
+        String sql = "insert into marks (film_id, user_id, mark) " +
                 "values (?, ?, ?)";
         return jdbcTemplate.update(sql, filmId, userId, mark) > 0;
     }

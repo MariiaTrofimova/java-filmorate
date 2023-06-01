@@ -15,9 +15,7 @@ import ru.yandex.practicum.filmorate.storage.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.utils.CollaborativeFiltering;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ru.yandex.practicum.filmorate.model.enums.EventType.FRIEND;
@@ -130,10 +128,19 @@ public class DbUserService implements UserService {
 
     @Override
     public List<Film> recommendations(long userId) {
-        Map<Long, HashMap<Long, Integer>> inputData = new HashMap<>();
-        HashMap<Long, Double> filmIdRatingsPrediction = CollaborativeFiltering.predictRatings(inputData, userId);
+        Map<Long, HashMap<Long, Integer>> data = filmStorage.getUserIdsWithMarkedFilmIdsAndMarks();
+        List<Long> userFilmIds = new ArrayList<>(data.getOrDefault(userId, new HashMap<>()).keySet());
+        if (userFilmIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        HashMap<Long, Double> filmIdRatingsPrediction = CollaborativeFiltering.predictRatings(data, userId);
+        List<Long> filmIds = filmIdRatingsPrediction.entrySet().stream()
+                .filter(entry -> entry.getValue() > 5 && !userFilmIds.contains(entry.getKey()))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
 
-        return null;
+        return genreService.getFilmsWithGenres(
+                filmStorage.listTopFilms(filmIds));
     }
 
     @Override

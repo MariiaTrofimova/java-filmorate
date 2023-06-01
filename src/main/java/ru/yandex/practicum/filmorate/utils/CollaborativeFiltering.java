@@ -13,8 +13,9 @@ public class CollaborativeFiltering {
         return predict(inputData, userId);
     }
 
-    /* calculate the relationships between the items and number of occurrences */
+    /* расчет отношений между элементами и количества вхождений элементов.*/
     private static void buildDifferencesMatrix(Map<Long, HashMap<Long, Integer>> data) {
+        //Для каждого пользователя проверяем его рейтинг фильмов:
         for (HashMap<Long, Integer> user : data.values()) {
             for (Map.Entry<Long, Integer> e : user.entrySet()) {
                 //существует ли элемент в матрицах
@@ -32,7 +33,7 @@ public class CollaborativeFiltering {
                 }
             }
         }
-        //вычисляем оценки сходства внутри матриц:
+        //вычисляем оценки сходства внутри матриц: разница рассчитанного рейтинга элемента / количество его вхождений:
         for (Long i : diff.keySet()) {
             for (Long j : diff.get(i).keySet()) {
                 double oldValue = diff.get(i).get(j);
@@ -42,15 +43,15 @@ public class CollaborativeFiltering {
         }
     }
 
-    /* Based on existing data predict all missing ratings. */
+    /* Прогноз недостающих рейтингов на основе существующих данных. */
     private static HashMap<Long, Double> predict(Map<Long, HashMap<Long, Integer>> data, long userId) {
         HashMap<Long, Double> uPred = new HashMap<>();
         HashMap<Long, Integer> uFreq = new HashMap<>();
         for (Long filmId : diff.keySet()) {
-            uFreq.put(filmId, 0);
             uPred.put(filmId, 0.0);
+            uFreq.put(filmId, 0);
         }
-        //сравнить рейтинги пользовательских элементов с матрицей различий:
+        //Сравнить рейтинги пользовательских элементов с матрицей различий:
         for (Long filmId1 : data.get(userId).keySet()) {
             for (Long filmId2 : diff.keySet()) {
                 try {
