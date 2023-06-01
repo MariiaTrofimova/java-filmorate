@@ -13,10 +13,9 @@ import ru.yandex.practicum.filmorate.storage.FeedStorage;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.utils.CollaborativeFiltering;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ru.yandex.practicum.filmorate.model.enums.EventType.FRIEND;
@@ -129,34 +128,19 @@ public class DbUserService implements UserService {
 
     @Override
     public List<Film> recommendations(long userId) {
-        Map<Long, List<Long>> usersLikes = filmStorage.getUserIdsLikedFilmIds();
-        if (usersLikes.isEmpty()) {
+        Map<Long, HashMap<Long, Integer>> data = filmStorage.getUserIdsWithMarkedFilmIdsAndMarks();
+        List<Long> userFilmIds = new ArrayList<>(data.getOrDefault(userId, new HashMap<>()).keySet());
+        if (userFilmIds.isEmpty()) {
             return Collections.emptyList();
         }
-        List<Long> userLikes = usersLikes.getOrDefault(userId, Collections.emptyList());
-        usersLikes.remove(userId);
-
-        long matchesMax = 0;
-        long userIdMax = -1L;
-        for (Map.Entry<Long, List<Long>> userOtherLikes : usersLikes.entrySet()) {
-            long matches = userOtherLikes.getValue().stream()
-                    .filter(userLikes::contains)
-                    .count();
-            if (matches > matchesMax) {
-                matchesMax = matches;
-                userIdMax = userOtherLikes.getKey();
-            }
-        }
-        if (matchesMax == 0) {
-            return Collections.emptyList();
-        }
-
-        List<Long> filmIds = usersLikes.getOrDefault(userIdMax, Collections.emptyList()).stream()
-                .filter(film -> !userLikes.contains(film))
+        HashMap<Long, Double> filmIdRatingsPrediction = CollaborativeFiltering.predictRatings(data, userId);
+        List<Long> filmIds = filmIdRatingsPrediction.entrySet().stream()
+                .filter(entry -> entry.getValue() > 5 && !userFilmIds.contains(entry.getKey()))
+                .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
+
         return genreService.getFilmsWithGenres(
                 filmStorage.listTopFilms(filmIds));
-
     }
 
     @Override

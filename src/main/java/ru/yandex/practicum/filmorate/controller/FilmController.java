@@ -80,13 +80,13 @@ public class FilmController {
         return service.deleteFilm(id);
     }
 
-    @PutMapping("/{id}/like/{userId}")
-    public List<Long> addLike(@PathVariable long id, @PathVariable long userId) {
-        return service.addLike(id, userId);
+    @PutMapping("/{id}/userId/{userId}/mark/{mark}")
+    public void addMark(@PathVariable long id, @PathVariable long userId, @PathVariable byte mark) {
+        service.addMark(id, userId, mark);
     }
 
-    @DeleteMapping("/{id}/like/{userId}")
-    public List<Long> deleteLike(@PathVariable long id, @PathVariable long userId) {
-        return service.deleteLike(id, userId);
+    @DeleteMapping("/{id}/userId/{userId}")
+    public boolean deleteMark(@PathVariable long id, @PathVariable long userId) {
+        return service.deleteMark(id, userId);
     }
 }

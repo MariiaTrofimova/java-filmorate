@@ -17,9 +17,8 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static ru.yandex.practicum.filmorate.model.enums.EventType.LIKE;
-import static ru.yandex.practicum.filmorate.model.enums.Operation.ADD;
-import static ru.yandex.practicum.filmorate.model.enums.Operation.REMOVE;
+import static ru.yandex.practicum.filmorate.model.enums.EventType.MARK;
+import static ru.yandex.practicum.filmorate.model.enums.Operation.*;
 
 @Service("DbFilmService")
 public class DbFilmService implements FilmService {
@@ -127,27 +126,25 @@ public class DbFilmService implements FilmService {
     }
 
     @Override
-    public List<Long> addLike(long filmId, long userId) {
+    public void addMark(long filmId, long userId, int mark) {
         findFilmById(filmId);
         userStorage.findUserById(userId);
-        //проверка на наличие лайка: в тестах два раза добавляется лайк (3, 1), и оба раза записывается feed
-        List<Long> likes = storage.getLikesByFilm(filmId);
-        feedStorage.addFeed(filmId, userId, LIKE, ADD);
-        if (likes.contains(userId)) {
-            return likes;
+        if (storage.updateMark(filmId, userId, mark)) {
+            feedStorage.addFeed(filmId, userId, MARK, UPDATE);
+        } else if (storage.addMark(filmId, userId, mark)) {
+            feedStorage.addFeed(filmId, userId, MARK, ADD);
         }
-        storage.addLike(filmId, userId);
-        likes.add(userId);
-        return likes;
     }
 
     @Override
-    public List<Long> deleteLike(long filmId, long userId) {
+    public boolean deleteMark(long filmId, long userId) {
         findFilmById(filmId);
         userStorage.findUserById(userId);
-        storage.deleteLike(filmId, userId);
-        feedStorage.addFeed(filmId, userId, LIKE, REMOVE);
-        return storage.getLikesByFilm(filmId);
+        if (storage.deleteMark(filmId, userId)) {
+            feedStorage.addFeed(filmId, userId, MARK, REMOVE);
+            return true;
+        }
+        return false;
     }
 
     @Override

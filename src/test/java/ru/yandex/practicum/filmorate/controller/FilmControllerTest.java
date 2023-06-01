@@ -374,31 +374,24 @@ class FilmControllerTest {
     }
 
     @Test
-    void shouldAddLike() throws Exception {
-        when(service.addLike(1, 1)).thenReturn(List.of(1L));
-        mockMvc.perform(put(url + "/1/like/1"))
+    void shouldAddMark() throws Exception {
+        mockMvc.perform(put(url + "/1/userId/1/mark/1"))
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()", is(1)))
-                .andExpect(jsonPath("$[0]", is(1)));
+                .andExpect(status().isOk());
     }
 
     @Test
-    void shouldAddLikeToFilm3FromUser1() throws Exception {
-        when(service.addLike(3, 1)).thenReturn(List.of(1L));
-        mockMvc.perform(put(url + "/3/like/1"))
+    void shouldAddMarkToFilm3FromUser1() throws Exception {
+        mockMvc.perform(put(url + "/3/userId/1/mark/10"))
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()", is(1)))
-                .andExpect(jsonPath("$[0]", is(1)));
+                .andExpect(status().isOk());
     }
 
     @Test
-    void shouldDeleteLike() throws Exception {
-        when(service.deleteLike(1, 1)).thenReturn(Collections.EMPTY_LIST);
-        mockMvc.perform(delete(url + "/1/like/1"))
+    void shouldDeleteMark() throws Exception {
+        when(service.deleteMark(1, 1)).thenReturn(true);
+        mockMvc.perform(delete(url + "/1/userId/1"))
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()", is(0)));
+                .andExpect(status().isOk());
     }
 }

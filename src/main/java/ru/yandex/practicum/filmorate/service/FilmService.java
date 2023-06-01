@@ -23,9 +23,9 @@ public interface FilmService {
 
     List<Film> findCommonFilms(Long userId, Long friendId);
 
-    List<Long> addLike(long filmId, long userId);
+    void addMark(long filmId, long userId, int mark);
 
-    List<Long> deleteLike(long filmId, long userId);
+    boolean deleteMark(long filmId, long userId);
 
     List<Film> listFilmsByDirector(long directorId, Optional<String> sortParam);
 

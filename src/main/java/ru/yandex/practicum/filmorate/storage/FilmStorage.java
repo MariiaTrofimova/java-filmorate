@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage;
 
 import ru.yandex.practicum.filmorate.model.Film;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +25,8 @@ public interface FilmStorage {
 
     List<Film> listTopFilmsByYear(int year);
 
+    List<Film> listTopFilmsByDirector(long directorId);
+
     boolean deleteFilm(long id);
 
     boolean addGenreToFilm(long filmId, int genreId);
@@ -32,11 +35,13 @@ public interface FilmStorage {
 
     boolean clearGenresFromFilm(long filmId);
 
-    List<Long> getLikesByFilm(long filmId);
+    Map<Long, Integer> getMarksByFilm(long filmId);
 
-    boolean addLike(long filmId, long userId);
+    boolean addMark(long filmId, long userId, int mark);
 
-    boolean deleteLike(long filmId, long userId);
+    boolean updateMark(long filmId, long userId, int mark);
+
+    boolean deleteMark(long filmId, long userId);
 
     void addDirectorToFilm(long filmId, long directorId);
 
@@ -48,5 +53,5 @@ public interface FilmStorage {
 
     List<Long> findCommonFilmIds(Long userId, Long friendId);
 
-    Map<Long, List<Long>> getUserIdsLikedFilmIds();
+    Map<Long, HashMap<Long, Integer>> getUserIdsWithMarkedFilmIdsAndMarks();
 }

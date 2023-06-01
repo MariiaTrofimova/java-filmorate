@@ -28,18 +28,9 @@ public class Film {
     @PositiveOrZero(message = "Продолжительность фильма отрицательная")
     private int duration;
     private Mpa mpa;
+    private double rate;
     private final Set<Genre> genres = new HashSet<>();
     private final Set<Director> directors = new HashSet<>();
-    private final Set<Long> likes = new HashSet<>(); //id пользователей, поставивших лайки
-    //я бы оставила как параметр фильма, удалила лишние dao и модели, являющиеся не сущностями, а связями
-
-    public void addLike(long id) {
-        likes.add(id);
-    }
-
-    public boolean deleteLike(long id) {
-        return likes.remove(id);
-    }
 
     public List<Genre> getGenres() {
         return genres.stream().sorted(Comparator.comparingInt(Genre::getId)).collect(Collectors.toList());
@@ -47,10 +38,6 @@ public class Film {
 
     public void addGenre(Genre genre) {
         genres.add(genre);
-    }
-
-    public boolean deleteGenre(Genre genre) {
-        return genres.remove(genre);
     }
 
     public List<Director> getDirectors() {
@@ -62,11 +49,6 @@ public class Film {
     public void addDirector(Director director) {
         directors.add(director);
     }
-
-    public boolean deleteDirector(Director director) {
-        return directors.remove(director);
-    }
-
 
     public Map<String, Object> toMap() {
         Map<String, Object> values = new HashMap<>();
