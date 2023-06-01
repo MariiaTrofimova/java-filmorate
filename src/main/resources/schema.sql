@@ -56,10 +56,11 @@ create table IF NOT EXISTS FILM_GENRE
     primary key (FILM_ID, GENRE_ID)
 );
 
-create table IF NOT EXISTS MARKS (
+create table IF NOT EXISTS MARKS
+(
     FILM_ID INTEGER not null references FILMS ON delete CASCADE,
     USER_ID INTEGER not null references USERS ON delete CASCADE,
-    MARK INTEGER CHECK (MARK >= 1 AND MARK <= 10),
+    MARK    INTEGER CHECK (MARK >= 1 AND MARK <= 10),
     primary key (FILM_ID, USER_ID)
 );
 

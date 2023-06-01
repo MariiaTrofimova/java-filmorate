@@ -85,7 +85,7 @@ class FilmorateApplicationTests {
     @AfterEach
     public void cleanDb() {
         JdbcTestUtils.deleteFromTables(jdbcTemplate,
-                "users", "films", "friendship", "film_genre", "likes",
+                "users", "films", "friendship", "film_genre", "marks",
                 "directors", "film_director", "reviews", "review_likes", "feed");
         jdbcTemplate.update("ALTER TABLE USERS ALTER COLUMN user_id RESTART WITH 1");
         jdbcTemplate.update("ALTER TABLE FILMS ALTER COLUMN film_id RESTART WITH 1");
@@ -444,7 +444,7 @@ class FilmorateApplicationTests {
         Map<Long, Integer> marks = filmStorage.getMarksByFilm(1);
         assertNotNull(marks);
         assertEquals(marks.size(), 1);
-        assertEquals(marks.get(1), 6);
+        assertEquals(marks.get(1L), 6);
 
         filmStorage.addFilm(film);
         filmStorage.addFilm(film);
@@ -458,10 +458,10 @@ class FilmorateApplicationTests {
     public void testGetMarksByFilm() {
         Film film = filmBuilder.build();
         filmStorage.addFilm(film);
-        Set<Long> marks = filmStorage.getMarksByFilm(1).keySet();
+        Map<Long, Integer> marks = filmStorage.getMarksByFilm(1);
         assertThat(marks)
                 .isNotNull()
-                .isEqualTo(Collections.EMPTY_LIST);
+                .isEqualTo(Collections.EMPTY_MAP);
     }
 
     @Test
@@ -472,19 +472,19 @@ class FilmorateApplicationTests {
         userStorage.addUser(user);
         userStorage.addUser(user);
         filmStorage.addMark(1, 1, 6);
-        filmStorage.addMark(1, 2,8);
+        filmStorage.addMark(1, 2, 8);
 
         filmStorage.deleteMark(1, 2);
-        List<Long> marks = (List<Long>) filmStorage.getMarksByFilm(1).keySet();
+        Map<Long, Integer> marks = filmStorage.getMarksByFilm(1);
         assertNotNull(marks);
         assertEquals(marks.size(), 1);
-        assertEquals(marks.get(0), 1);
+        assertEquals(marks.get(1L), 6);
 
         filmStorage.deleteMark(1, 1);
-        marks = (List<Long>) filmStorage.getMarksByFilm(1).keySet();
+        marks = filmStorage.getMarksByFilm(1);
         assertThat(marks)
                 .isNotNull()
-                .isEqualTo(Collections.EMPTY_LIST);
+                .isEqualTo(Collections.EMPTY_MAP);
     }
 
     @Test
@@ -992,12 +992,19 @@ class FilmorateApplicationTests {
         recommendations = userService.recommendations(1L);
         assertNotNull(recommendations);
         assertEquals(2, recommendations.size());
-        assertEquals(3L, recommendations.get(1).getId());
+        assertEquals(3L, recommendations.get(0).getId());
+
+        filmStorage.addFilm(filmBuilder.build());
+        filmStorage.addMark(4L, 2L, 4);
+        recommendations = userService.recommendations(1L);
+        assertNotNull(recommendations);
+        assertEquals(2, recommendations.size());
+        assertEquals(3L, recommendations.get(0).getId());
     }
 
     @Test
     public void testGetUserIdsLikedFilmIds() {
-        Map<Long, List<Long>> usersWithMarkFilmIds = filmStorage.getUserIdsWithMarkedFilmIdsAndMarks();
+        Map<Long, HashMap<Long, Integer>> usersWithMarkFilmIds = filmStorage.getUserIdsWithMarkedFilmIdsAndMarks();
         assertThat(usersWithMarkFilmIds)
                 .isNotNull()
                 .isEqualTo(Collections.EMPTY_MAP);

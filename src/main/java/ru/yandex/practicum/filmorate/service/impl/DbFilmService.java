@@ -126,7 +126,7 @@ public class DbFilmService implements FilmService {
     }
 
     @Override
-    public void addMark(long filmId, long userId, byte mark) {
+    public void addMark(long filmId, long userId, int mark) {
         findFilmById(filmId);
         userStorage.findUserById(userId);
         if (storage.updateMark(filmId, userId, mark)) {
