@@ -13,8 +13,9 @@ import ru.yandex.practicum.filmorate.storage.FeedStorage;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.utils.CollaborativeFiltering;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -129,34 +130,10 @@ public class DbUserService implements UserService {
 
     @Override
     public List<Film> recommendations(long userId) {
-        Map<Long, List<Long>> usersLikes = filmStorage.getUserIdsWithMarkedFilmIdsAndMarks();
-        if (usersLikes.isEmpty()) {
-            return Collections.emptyList();
-        }
-        List<Long> userLikes = usersLikes.getOrDefault(userId, Collections.emptyList());
-        usersLikes.remove(userId);
+        Map<Long, HashMap<Long, Integer>> inputData = new HashMap<>();
+        HashMap<Long, Double> filmIdRatingsPrediction = CollaborativeFiltering.predictRatings(inputData, userId);
 
-        long matchesMax = 0;
-        long userIdMax = -1L;
-        for (Map.Entry<Long, List<Long>> userOtherLikes : usersLikes.entrySet()) {
-            long matches = userOtherLikes.getValue().stream()
-                    .filter(userLikes::contains)
-                    .count();
-            if (matches > matchesMax) {
-                matchesMax = matches;
-                userIdMax = userOtherLikes.getKey();
-            }
-        }
-        if (matchesMax == 0) {
-            return Collections.emptyList();
-        }
-
-        List<Long> filmIds = usersLikes.getOrDefault(userIdMax, Collections.emptyList()).stream()
-                .filter(film -> !userLikes.contains(film))
-                .collect(Collectors.toList());
-        return genreService.getFilmsWithGenres(
-                filmStorage.listTopFilms(filmIds));
-
+        return null;
     }
 
     @Override
