@@ -59,7 +59,7 @@ public class CollaborativeFiltering {
                     double finalValue = predictedValue * freq.get(filmId2).get(filmId1);
                     uPred.put(filmId2, uPred.get(filmId2) + finalValue);
                     uFreq.put(filmId2, uFreq.get(filmId2) + freq.get(filmId2).get(filmId1));
-                } catch (NullPointerException e) {
+                } catch (NullPointerException ignored) {
                 }
             }
         }
