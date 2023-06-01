@@ -98,10 +98,9 @@ public class FilmDbStorage implements FilmStorage {
                 "JOIN mpa AS m ON f.mpa_id = m.mpa_id " +
                 "LEFT JOIN marks AS mk ON f.film_id = mk.film_id " +
                 "GROUP BY f.film_id " +
-                //"HAVING AVG(mk.mark) > 5 " +
                 "ORDER BY mark_rating DESC " +
                 "LIMIT ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), count, count);
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), count);
     }
 
 
@@ -112,7 +111,6 @@ public class FilmDbStorage implements FilmStorage {
                 "JOIN mpa AS m ON f.mpa_id = m.mpa_id " +
                 "LEFT JOIN marks AS mk ON f.film_id = mk.film_id " +
                 "GROUP BY f.film_id " +
-                //"HAVING AVG(mk.mark) > 5 " +
                 "ORDER BY mark_rating DESC";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs));
     }
@@ -125,7 +123,6 @@ public class FilmDbStorage implements FilmStorage {
                 "LEFT JOIN marks AS mk ON f.film_id = mk.film_id " +
                 "WHERE f.film_id IN (:ids) " +
                 "GROUP BY f.film_id " +
-                //"HAVING AVG(mk.mark) > 5 " +
                 "ORDER BY mark_rating DESC";
 
         SqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
@@ -154,7 +151,6 @@ public class FilmDbStorage implements FilmStorage {
                 "LEFT JOIN marks AS mk ON f.film_id = mk.film_id " +
                 "WHERE EXTRACT(year FROM f.release_date) = ? " +
                 "GROUP BY f.film_id, m.name " +
-                //"HAVING AVG(mk.mark) > 5 " +
                 "ORDER BY mark_rating DESC";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), year);
     }
