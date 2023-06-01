@@ -5,10 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import ru.yandex.practicum.filmorate.validation.ReleaseConstraint;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.PositiveOrZero;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,6 +25,8 @@ public class Film {
     @PositiveOrZero(message = "Продолжительность фильма отрицательная")
     private int duration;
     private Mpa mpa;
+    @DecimalMin(value = "0", inclusive = true, message = "Рейтинг должен быть не меньше 0")
+    @DecimalMax(value = "10", inclusive = true, message = "Рейтинг должен быть не больше 10")
     private double rate;
     private final Set<Genre> genres = new HashSet<>();
     private final Set<Director> directors = new HashSet<>();
